@@ -1,8 +1,8 @@
 package infraestructure
 
 import (
-	"vitalPoint/src/blood-oxygenation/application"
 	"net/http"
+	"vitalPoint/src/blood-oxygenation/application"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,8 +18,8 @@ func NewCreateBloodOxygenationController(useCase *application.CreateBloodOxygena
 type RequestBody struct {
 	Esp32ID   string `json:"esp32_id"`
 	Timestamp string `json:"tiempo"`
-	IR       int32  `json:"ir"`
-	Red      int32  `json:"red"`
+	IR        int32  `json:"ir"`
+	Red       int32  `json:"red"`
 }
 
 func (ct_c *CreateBloodOxygenationController) Execute(c *gin.Context) {
@@ -27,6 +27,11 @@ func (ct_c *CreateBloodOxygenationController) Execute(c *gin.Context) {
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error al leer el JSON", "detalles": err.Error()})
 		return
+	}
+
+	// Si no viene el Esp32ID, ponle un valor por defecto
+	if body.Esp32ID == "" {
+		body.Esp32ID = "1ESP32"
 	}
 
 	err := ct_c.useCase.Execute(body.Esp32ID, body.Timestamp, body.IR, body.Red)
