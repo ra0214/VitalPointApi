@@ -16,7 +16,6 @@ type BodyTemperature struct {
 func NewBodyTemperature(esp32ID string, tiempo string, temp_ambiente float64, temp_objeto float64) *BodyTemperature {
 	return &BodyTemperature{
 		ESP32ID:      esp32ID,
-		Temperature:  temperature,
 		Timestamp:    tiempo,
 		TempAmbiente: temp_ambiente,
 		TempObjeto:   temp_objeto,
