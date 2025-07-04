@@ -23,9 +23,9 @@ func NewMySQL() domain.IBodyTemperature {
 }
 
 // Guardar la temperatura en la base de datos
-func (mysql *MySQL) SaveBodyTemperature(esp32ID string, temperatura float64, tiempo string, temp_ambiente float64, temp_objeto float64) error {
-	query := "INSERT INTO bodytemp (esp32_id, temperatura, tiempo, temp_ambiente, temp_objeto) VALUES (?, ?, ?, ?, ?)"
-	result, err := mysql.conn.ExecutePreparedQuery(query, esp32ID, temperatura, tiempo, temp_ambiente, temp_objeto)
+func (mysql *MySQL) SaveBodyTemperature(esp32ID string, tiempo string, temp_ambiente float64, temp_objeto float64) error {
+	query := "INSERT INTO bodytemp (esp32_id, tiempo, temp_ambiente, temp_objeto) VALUES (?, ?, ?, ?)"
+	result, err := mysql.conn.ExecutePreparedQuery(query, esp32ID, tiempo, temp_ambiente, temp_objeto)
 	if err != nil {
 		return fmt.Errorf("error al ejecutar la consulta: %v", err)
 	}
@@ -36,7 +36,7 @@ func (mysql *MySQL) SaveBodyTemperature(esp32ID string, temperatura float64, tie
 	}
 
 	if rowsAffected == 1 {
-		log.Printf("[MySQL] - Temperatura guardada correctamente: Esp32ID:%s Temperatura:%f Tiempo:%s Temp_Ambiente:%f Temp_Objeto:%f", esp32ID, temperatura, tiempo, temp_ambiente, temp_objeto)
+		log.Printf("[MySQL] - Temperatura guardada correctamente: Esp32ID:%s Tiempo:%s Temp_Ambiente:%f Temp_Objeto:%f", esp32ID, tiempo, temp_ambiente, temp_objeto)
 	} else {
 		log.Println("[MySQL] - No se insertó ninguna fila")
 	}
@@ -44,7 +44,7 @@ func (mysql *MySQL) SaveBodyTemperature(esp32ID string, temperatura float64, tie
 }
 
 func (mysql *MySQL) GetAll() ([]domain.BodyTemperature, error) {
-	query := "SELECT id, esp32_id, temperatura, tiempo, temp_ambiente, temp_objeto FROM bodytemp"
+	query := "SELECT id, esp32_id, tiempo, temp_ambiente, temp_objeto FROM bodytemp"
 	rows, err := mysql.conn.FetchRows(query)
 	if err != nil {
 		return nil, fmt.Errorf("Error al ejecutar la consulta SELECT: %v", err)
@@ -55,7 +55,7 @@ func (mysql *MySQL) GetAll() ([]domain.BodyTemperature, error) {
 
 	for rows.Next() {
 		var bodyTemp domain.BodyTemperature
-		if err := rows.Scan(&bodyTemp.ID, &bodyTemp.ESP32ID, &bodyTemp.Temperature, &bodyTemp.Timestamp, &bodyTemp.TempAmbiente, &bodyTemp.TempObjeto); err != nil {
+		if err := rows.Scan(&bodyTemp.ID, &bodyTemp.ESP32ID, &bodyTemp.Timestamp, &bodyTemp.TempAmbiente, &bodyTemp.TempObjeto); err != nil {
 			return nil, fmt.Errorf("Error al escanear la fila: %v", err)
 		}
 		bodyTemps = append(bodyTemps, bodyTemp)

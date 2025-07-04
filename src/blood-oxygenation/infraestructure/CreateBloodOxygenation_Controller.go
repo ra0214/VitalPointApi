@@ -16,11 +16,10 @@ func NewCreateBloodOxygenationController(useCase *application.CreateBloodOxygena
 }
 
 type RequestBody struct {
-	Esp32ID       string  `json:"esp32_id"`
-	BloodOxygenation float64 `json:"blood_oxygenation"`
-	Timestamp     string  `json:"tiempo"`
-	IR            int32   `json:"ir"`
-	Red           int32   `json:"red"`
+	Esp32ID   string `json:"esp32_id"`
+	Timestamp string `json:"tiempo"`
+	IR       int32  `json:"ir"`
+	Red      int32  `json:"red"`
 }
 
 func (ct_c *CreateBloodOxygenationController) Execute(c *gin.Context) {
@@ -30,7 +29,7 @@ func (ct_c *CreateBloodOxygenationController) Execute(c *gin.Context) {
 		return
 	}
 
-	err := ct_c.useCase.Execute(body.Esp32ID ,body.BloodOxygenation, body.Timestamp, body.IR, body.Red)
+	err := ct_c.useCase.Execute(body.Esp32ID, body.Timestamp, body.IR, body.Red)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar la saturación de oxígeno en sangre", "detalles": err.Error()})
 		return
