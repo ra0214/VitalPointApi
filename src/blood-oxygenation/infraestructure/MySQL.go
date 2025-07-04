@@ -23,9 +23,9 @@ func NewMySQL() domain.IBloodOxygenation {
 }
 
 // Guardar la saturación de oxígeno en sangre en la base de datos
-func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, bloodOxygenation float64) error {
-	query := "INSERT INTO bloodoxygenation (esp32_id, blood_oxygenation) VALUES (?, ?)"
-	result, err := mysql.conn.ExecutePreparedQuery(query, esp32ID, bloodOxygenation)
+func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, bloodOxygenation float64, tiempo string, ir int32, red int32) error {
+	query := "INSERT INTO bloodoxygenation (esp32_id, blood_oxygenation, tiempo, ir, red) VALUES (?, ?, ?, ?, ?)"
+	result, err := mysql.conn.ExecutePreparedQuery(query, esp32ID, bloodOxygenation, tiempo, ir, red)
 	if err != nil {
 		return fmt.Errorf("error al ejecutar la consulta: %v", err)
 	}
@@ -44,7 +44,7 @@ func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, bloodOxygenation float6
 }
 
 func (mysql *MySQL) GetAll() ([]domain.BloodOxygenation, error) {
-	query := "SELECT id, esp32_id, blood_oxygenation FROM bloodoxygenation"
+	query := "SELECT id, esp32_id, blood_oxygenation, tiempo, ir, red FROM bloodoxygenation"
 	rows, err := mysql.conn.FetchRows(query)
 	if err != nil {
 		return nil, fmt.Errorf("Error al ejecutar la consulta SELECT: %v", err)
@@ -55,7 +55,7 @@ func (mysql *MySQL) GetAll() ([]domain.BloodOxygenation, error) {
 
 	for rows.Next() {
 		var bloodOxygen domain.BloodOxygenation
-		if err := rows.Scan(&bloodOxygen.ID, &bloodOxygen.ESP32ID, &bloodOxygen.BloodOxygenation); err != nil {
+		if err := rows.Scan(&bloodOxygen.ID, &bloodOxygen.ESP32ID, &bloodOxygen.BloodOxygenation, &bloodOxygen.Timestamp, &bloodOxygen.IR, &bloodOxygen.Red); err != nil {
 			return nil, fmt.Errorf("Error al escanear la fila: %v", err)
 		}
 		bloodOxygens = append(bloodOxygens, bloodOxygen)

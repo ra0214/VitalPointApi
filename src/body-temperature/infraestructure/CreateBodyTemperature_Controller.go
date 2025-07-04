@@ -18,6 +18,9 @@ func NewCreateBodyTemperatureController(useCase *application.CreateBodyTemperatu
 type RequestBody struct {
 	Esp32ID   string  `json:"esp32_id"`
 	Temperatura float64 `json:"temperatura"`
+	Tiempo    string  `json:"tiempo"`
+	TempAmbiente float64 `json:"temp_ambiente"`
+	TempObjeto   float64 `json:"temp_objeto"`
 }
 
 func (ct_c *CreateBodyTemperatureController) Execute(c *gin.Context) {
@@ -27,7 +30,7 @@ func (ct_c *CreateBodyTemperatureController) Execute(c *gin.Context) {
 		return
 	}
 
-	err := ct_c.useCase.Execute(body.Esp32ID ,body.Temperatura)
+	err := ct_c.useCase.Execute(body.Esp32ID ,body.Temperatura, body.Tiempo, body.TempAmbiente, body.TempObjeto)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar la temperatura corporal", "detalles": err.Error()})
 		return
