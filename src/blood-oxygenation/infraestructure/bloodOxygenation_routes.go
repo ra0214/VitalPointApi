@@ -16,7 +16,7 @@ func SetupBloodOxygenationRouter(repo domain.IBloodOxygenation, rabbitRepo domai
 	viewBloodOxygenation := application.NewViewBloodOxygenation(repo)
 	viewBloodOxygenationController := NewViewBloodOxygenationController(viewBloodOxygenation)
 
-	r.POST("/bloodOxygenation", createBloodOxygenationController.Execute)
+	r.POST("/bloodOxygenation/", createBloodOxygenationController.Execute)
 	r.GET("/bloodOxygenation", viewBloodOxygenationController.Execute)
 
 	return r

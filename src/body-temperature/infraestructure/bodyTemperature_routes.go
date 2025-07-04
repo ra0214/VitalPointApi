@@ -16,7 +16,7 @@ func SetupRouter(repo domain.IBodyTemperature, rabbitRepo domain.IBodyTemperatur
 	viewBodyTemperature := application.NewViewBodyTemperature(repo)
 	viewBodyTemperatureController := NewViewBodyTemperatureController(viewBodyTemperature)
 
-	r.POST("/bodyTemperature", createBodyTemperatureController.Execute)
+	r.POST("/bodyTemperature/", createBodyTemperatureController.Execute)
 	r.GET("/bodyTemperature", viewBodyTemperatureController.Execute)
 
 	return r
