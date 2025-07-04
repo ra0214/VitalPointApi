@@ -17,8 +17,8 @@ type MyExchangeLogs struct {
 
 func NewRabbitRepository(ch *amqp.Channel) *MyExchangeLogs {
     if err := ch.ExchangeDeclare(
-        "broker1",   // Nombre del exchange
-        "fanout", // Tipo del exchange
+        "amq.topic",   // Nombre del exchange
+        "topic", // Tipo del exchange
         true,     // Durable
         false,    // Auto-deleted
         false,    // Internal
@@ -43,7 +43,7 @@ func (ch *MyExchangeLogs) Save(order *domain.BloodOxygenation) error {
     defer cancel()
 
     if err := ch.ch.PublishWithContext(ctx,
-        "broker1",  // Exchange
+        "amq.topic",  // Exchange
         "",      // Routing key
         false,   // Mandatory
         false,   // Immediate
