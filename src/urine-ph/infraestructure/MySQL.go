@@ -1,10 +1,10 @@
 package infraestructure
 
 import (
-	"vitalPoint/src/config"
-	"vitalPoint/src/urine-ph/domain"
 	"fmt"
 	"log"
+	"vitalPoint/src/config"
+	"vitalPoint/src/urine-ph/domain"
 )
 
 type MySQL struct {

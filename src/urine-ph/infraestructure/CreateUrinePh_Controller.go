@@ -16,9 +16,9 @@ func NewCreateUrinePhController(useCase *application.CreateUrinePh) *CreateUrine
 }
 
 type RequestBody struct {
-	Esp32ID   string `json:"esp32_id"`
-	Timestamp string `json:"tiempo"`
-	PH        int32  `json:"ph"`
+	Esp32ID   string  `json:"esp32_id"`
+	Timestamp string  `json:"tiempo"`
+	PH        float64 `json:"ph"`
 }
 
 func (ct_c *CreateUrinePhController) Execute(c *gin.Context) {
