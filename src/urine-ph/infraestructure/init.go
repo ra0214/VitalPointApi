@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func InitBloodOxygenation() error {
+func InitUrinePh() error {
 	log.Println("Inicializando datos...")
 
 	db, err := config.GetDBConnection()

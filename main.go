@@ -8,6 +8,7 @@ import (
 	mlxInfra "vitalPoint/src/blood-oxygenation/infraestructure"
 	maxInfra "vitalPoint/src/body-temperature/infraestructure"
 	userInfra "vitalPoint/src/users/infraestructure"
+	phInfra "vitalPoint/src/urine-ph/infraestructure"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 	userRepo := userInfra.NewMySQL()
 	maxRepo := maxInfra.NewMySQL()
 	mlxRepo := mlxInfra.NewMySQL()
+	phRepo := phInfra.NewMySQL()
 
 	rabbitMQRepo, err := config.GetChannel()
 	if err != nil {
@@ -38,6 +40,7 @@ func main() {
 
 	maxRabbit := maxInfra.NewRabbitRepository(rabbitMQRepo.Ch)
 	mlxRabbit := mlxInfra.NewRabbitRepository(rabbitMQRepo.Ch)
+	phRabbit := phInfra.NewRabbitRepository(rabbitMQRepo.Ch)
 
 	userRouter := userInfra.SetupRouter(userRepo)
 	for _, route := range userRouter.Routes() {
@@ -51,6 +54,11 @@ func main() {
 
 	mlxRouter := mlxInfra.SetupBloodOxygenationRouter(mlxRepo, mlxRabbit)
 	for _, route := range mlxRouter.Routes() {
+		r.Handle(route.Method, route.Path, route.HandlerFunc)
+	}
+
+	phRouter := phInfra.SetupUrinePhRouter(phRepo, phRabbit)
+	for _, route := range phRouter.Routes() {
 		r.Handle(route.Method, route.Path, route.HandlerFunc)
 	}
 
