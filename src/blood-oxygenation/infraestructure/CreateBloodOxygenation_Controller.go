@@ -20,7 +20,7 @@ type RequestBody struct {
 	Timestamp string `json:"tiempo"`
 	IR        int32  `json:"ir"`
 	Red       int32  `json:"red"`
-	SpO2      int32  `json:"spo2"`
+	SpO2      float32  `json:"spo2"`
 }
 
 func (ct_c *CreateBloodOxygenationController) Execute(c *gin.Context) {

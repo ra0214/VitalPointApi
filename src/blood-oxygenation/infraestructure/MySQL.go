@@ -23,7 +23,7 @@ func NewMySQL() domain.IBloodOxygenation {
 }
 
 // Guardar la saturación de oxígeno en sangre en la base de datos
-func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, tiempo string, ir int32, red int32, spo2 int32) error {
+func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, tiempo string, ir int32, red int32, spo2 float32) error {
 	query := "INSERT INTO bloodoxygenation (esp32ID, tiempo, ir, red, spo2) VALUES (?, ?, ?, ?, ?)"
 	result, err := mysql.conn.ExecutePreparedQuery(query, esp32ID, tiempo, ir, red, spo2)
 	if err != nil {

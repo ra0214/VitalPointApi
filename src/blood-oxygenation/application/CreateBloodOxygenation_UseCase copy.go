@@ -13,7 +13,7 @@ func NewCreateBloodOxygenation(db domain.IBloodOxygenation, r domain.IBloodOxyge
 	return &CreateBloodOxygenation{db: db, rabbit: r}
 }
 
-func (cu *CreateBloodOxygenation) Execute(esp32ID string, tiempo string, ir int32, red int32, spo2 int32) error {
+func (cu *CreateBloodOxygenation) Execute(esp32ID string, tiempo string, ir int32, red int32, spo2 float32) error {
 	err := cu.db.SaveBloodOxygenation(esp32ID, tiempo, ir, red, spo2)
 	if err != nil {
 		return err
