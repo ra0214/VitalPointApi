@@ -23,7 +23,7 @@ func NewMySQL() domain.IBloodOxygenation {
 }
 
 // Guardar la saturación de oxígeno en sangre en la base de datos
-func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, tiempo string, ir int32, red int32, spo2 float32) error {
+func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, tiempo string, ir int32, red int32, spo2 float64) error {
 	query := "INSERT INTO bloodoxygenation (esp32ID, tiempo, ir, red, spo2) VALUES (?, ?, ?, ?, ?)"
 	result, err := mysql.conn.ExecutePreparedQuery(query, esp32ID, tiempo, ir, red, spo2)
 	if err != nil {
@@ -36,7 +36,7 @@ func (mysql *MySQL) SaveBloodOxygenation(esp32ID string, tiempo string, ir int32
 	}
 
 	if rowsAffected == 1 {
-		log.Printf("[MySQL] - Saturación de oxígeno en sangre guardada correctamente: Esp32ID:%s Saturación:%f", esp32ID, float64(ir+red)/2.0, float64(spo2))
+		log.Printf("[MySQL] - Saturación de oxígeno en sangre guardada correctamente: Esp32ID:%s Saturación:%f", esp32ID, float64(ir+red)/2.0, spo2)
 	} else {
 		log.Println("[MySQL] - No se insertó ninguna fila")
 	}
