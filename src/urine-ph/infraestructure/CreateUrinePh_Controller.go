@@ -33,7 +33,7 @@ func (ct_c *CreateUrinePhController) Execute(c *gin.Context) {
 		body.Esp32ID = "1ESP32"
 	}
 
-	err := ct_c.useCase.Execute(body.Esp32ID, body.Timestamp, body.PH)
+	err := ct_c.useCase.Execute(body.Esp32ID, body.Timestamp, float64(body.PH))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar el pH de la orina", "detalles": err.Error()})
 		return

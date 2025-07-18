@@ -1,7 +1,7 @@
 package domain
 
 type IUrinePh interface {
-	SaveUrinePh(esp32ID string, timestamp string, ph int32) error
+	SaveUrinePh(esp32ID string, timestamp string, ph float64) error
 	GetAll() ([]UrinePh, error)
 }
 
@@ -9,10 +9,10 @@ type UrinePh struct {
 	ID int32  `json:"id"`
 	ESP32ID     string  `json:"esp32ID"`
 	Timestamp string  `json:"tiempo"`
-	PH int32   `json:"ph"`
+	PH float64   `json:"ph"`
 }
 
-func NewUrinePh(esp32ID string, tiempo string, ph int32) *UrinePh {
+func NewUrinePh(esp32ID string, tiempo string, ph float64) *UrinePh {
 	return &UrinePh{
 		ESP32ID:  esp32ID,
 		Timestamp: tiempo,
@@ -20,6 +20,6 @@ func NewUrinePh(esp32ID string, tiempo string, ph int32) *UrinePh {
 	}
 }
 
-func (ur *UrinePh) SetUrinePh(ph int32) {
+func (ur *UrinePh) SetUrinePh(ph float64) {
 	ur.PH = ph
 }

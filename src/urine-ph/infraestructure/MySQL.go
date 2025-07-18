@@ -23,7 +23,7 @@ func NewMySQL() domain.IUrinePh {
 }
 
 // Guardar el pH de la orina en la base de datos
-func (mysql *MySQL) SaveUrinePh(esp32ID string, tiempo string, ph int32) error {
+func (mysql *MySQL) SaveUrinePh(esp32ID string, tiempo string, ph float64) error {
 	query := "INSERT INTO urineph (esp32ID, tiempo, ph) VALUES (?, ?, ?)"
 	result, err := mysql.conn.ExecutePreparedQuery(query, esp32ID, tiempo, ph)
 	if err != nil {

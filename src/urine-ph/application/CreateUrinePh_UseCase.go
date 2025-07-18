@@ -13,7 +13,7 @@ func NewCreateUrinePh(db domain.IUrinePh, r domain.IUrinePhRabbitMQ) *CreateUrin
 	return &CreateUrinePh{db: db, rabbit: r}
 }
 
-func (cu *CreateUrinePh) Execute(esp32ID string, tiempo string, ph int32) error {
+func (cu *CreateUrinePh) Execute(esp32ID string, tiempo string, ph float64) error {
 	err := cu.db.SaveUrinePh(esp32ID, tiempo, ph)
 	if err != nil {
 		return err
