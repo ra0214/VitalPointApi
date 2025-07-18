@@ -20,6 +20,7 @@ type RequestBody struct {
 	Timestamp string `json:"tiempo"`
 	IR        int32  `json:"ir"`
 	Red       int32  `json:"red"`
+	SpO2      int32  `json:"spo2"`
 }
 
 func (ct_c *CreateBloodOxygenationController) Execute(c *gin.Context) {
@@ -34,7 +35,7 @@ func (ct_c *CreateBloodOxygenationController) Execute(c *gin.Context) {
 		body.Esp32ID = "1ESP32"
 	}
 
-	err := ct_c.useCase.Execute(body.Esp32ID, body.Timestamp, body.IR, body.Red)
+	err := ct_c.useCase.Execute(body.Esp32ID, body.Timestamp, body.IR, body.Red, body.SpO2)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar la saturación de oxígeno en sangre", "detalles": err.Error()})
 		return
