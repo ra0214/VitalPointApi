@@ -1,6 +1,9 @@
 package domain
 
-import "database/sql"
+import (
+	"database/sql"
+	"encoding/json"
+)
 
 type IBloodOxygenation interface {
 	SaveBloodOxygenation(esp32ID string, timestamp string, ir int32, red int32, spo2 float64) error
@@ -13,7 +16,23 @@ type BloodOxygenation struct {
 	Timestamp string          `json:"tiempo"`
 	IR        int32           `json:"ir"`
 	Red       int32           `json:"red"`
-	SpO2      sql.NullFloat64 `json:"spo2"`
+	SpO2      sql.NullFloat64 `json:"-"`
+}
+
+func (b BloodOxygenation) MarshalJSON() ([]byte, error) {
+	type Alias BloodOxygenation
+	return json.Marshal(&struct {
+		SpO2 interface{} `json:"spo2"`
+		Alias
+	}{
+		SpO2: func() interface{} {
+			if b.SpO2.Valid {
+				return b.SpO2.Float64
+			}
+			return nil
+		}(),
+		Alias: (Alias)(b),
+	})
 }
 
 // Si quieres seguir usando tus constructores:
