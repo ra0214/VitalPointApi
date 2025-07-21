@@ -10,6 +10,7 @@ import (
 	userInfra "vitalPoint/src/users/infraestructure"
 	phInfra "vitalPoint/src/urine-ph/infraestructure"
 	stress "vitalPoint/src/stress/infraestructure"
+	sugar "vitalPoint/src/sugar-orine/infraestructure"
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 	mlxRepo := mlxInfra.NewMySQL()
 	phRepo := phInfra.NewMySQL()
 	stressRepo := stress.NewMySQL()
+	sugarRepo := sugar.NewMySQL()
 
 	rabbitMQRepo, err := config.GetChannel()
 	if err != nil {
@@ -44,6 +46,7 @@ func main() {
 	mlxRabbit := mlxInfra.NewRabbitRepository(rabbitMQRepo.Ch)
 	phRabbit := phInfra.NewRabbitRepository(rabbitMQRepo.Ch)
 	stressRabbit := stress.NewRabbitRepository(rabbitMQRepo.Ch)
+	sugarRabbit := sugar.NewRabbitRepository(rabbitMQRepo.Ch)
 
 	userRouter := userInfra.SetupRouter(userRepo)
 	for _, route := range userRouter.Routes() {
@@ -67,6 +70,11 @@ func main() {
 
 	stressRouter := stress.SetupStressRouter(stressRepo, stressRabbit)
 	for _, route := range stressRouter.Routes() {
+		r.Handle(route.Method, route.Path, route.HandlerFunc)
+	}
+
+	sugarRouter := sugar.SetupSugarOrineRouter(sugarRepo, sugarRabbit)
+	for _, route := range sugarRouter.Routes() {
 		r.Handle(route.Method, route.Path, route.HandlerFunc)
 	}
 
