@@ -44,8 +44,8 @@ func (acs *AutoCalculateStress) Execute(esp32ID string) error {
 	nivel := CalcularNivelStress(temperatura, oxigenacion)
 	fmt.Printf("Nivel de estrés calculado: %s\n", nivel)
 
-	// Timestamp actual
-	tiempo := time.Now().Format("2006-01-02T15:04:05Z07:00")
+	// Timestamp actual - FORMATO CORREGIDO PARA COINCIDIR CON TU BD
+	tiempo := time.Now().Format("2006-01-02T15:04:05.000000")
 	fmt.Printf("Timestamp: %s\n", tiempo)
 
 	// Guardar en base de datos
