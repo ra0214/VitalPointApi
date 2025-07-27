@@ -71,8 +71,11 @@ func (mysql *MySQL) GetAll() ([]domain.Stress, error) {
 func (mysql *MySQL) GetLatestTemperature(esp32ID string) (float64, error) {
 	// Usar temp_objeto que parece ser la temperatura corporal
 	query := "SELECT temp_objeto FROM bodytemp WHERE esp32_id = ? ORDER BY tiempo DESC LIMIT 1"
+	fmt.Printf("Ejecutando query temperatura: %s con esp32_id: %s\n", query, esp32ID)
+
 	rows, err := mysql.conn.FetchRows(query, esp32ID)
 	if err != nil {
+		fmt.Printf("Error en query temperatura: %v\n", err)
 		return 0, fmt.Errorf("Error al obtener la última temperatura: %v", err)
 	}
 	defer rows.Close()
@@ -80,8 +83,12 @@ func (mysql *MySQL) GetLatestTemperature(esp32ID string) (float64, error) {
 	var temperature float64
 	if rows.Next() {
 		if err := rows.Scan(&temperature); err != nil {
+			fmt.Printf("Error escaneando temperatura: %v\n", err)
 			return 0, fmt.Errorf("Error al escanear temperatura: %v", err)
 		}
+		fmt.Printf("Temperatura encontrada: %.2f\n", temperature)
+	} else {
+		fmt.Printf("No se encontraron datos de temperatura para esp32_id: %s\n", esp32ID)
 	}
 	return temperature, nil
 }
@@ -90,8 +97,11 @@ func (mysql *MySQL) GetLatestTemperature(esp32ID string) (float64, error) {
 func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
 	// Cambiar a bloodoxygenation y esp32ID
 	query := "SELECT spo2 FROM bloodoxygenation WHERE esp32ID = ? AND spo2 IS NOT NULL ORDER BY tiempo DESC LIMIT 1"
+	fmt.Printf("Ejecutando query oxigenación: %s con esp32ID: %s\n", query, esp32ID)
+
 	rows, err := mysql.conn.FetchRows(query, esp32ID)
 	if err != nil {
+		fmt.Printf("Error en query oxigenación: %v\n", err)
 		return 0, fmt.Errorf("Error al obtener la última oxigenación: %v", err)
 	}
 	defer rows.Close()
@@ -99,8 +109,12 @@ func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
 	var oxygenation float64
 	if rows.Next() {
 		if err := rows.Scan(&oxygenation); err != nil {
+			fmt.Printf("Error escaneando oxigenación: %v\n", err)
 			return 0, fmt.Errorf("Error al escanear oxigenación: %v", err)
 		}
+		fmt.Printf("Oxigenación encontrada: %.2f\n", oxygenation)
+	} else {
+		fmt.Printf("No se encontraron datos de oxigenación para esp32ID: %s\n", esp32ID)
 	}
 	return oxygenation, nil
 }
