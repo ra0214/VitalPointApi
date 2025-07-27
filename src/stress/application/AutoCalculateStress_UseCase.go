@@ -55,7 +55,7 @@ func (acs *AutoCalculateStress) Execute(esp32ID string) error {
 	}
 
 	// Calcular nivel de estrés
-	nivel := calcularNivelStressFromData(temperatura, oxigenacion)
+	nivel := CalcularNivelStress(temperatura, oxigenacion)
 	fmt.Printf("Nivel de estrés calculado: %s\n", nivel)
 
 	// Timestamp actual
