@@ -15,20 +15,6 @@ func NewAutoCalculateStress(db domain.IStress, r domain.IStressRabbitMQ) *AutoCa
 	return &AutoCalculateStress{db: db, rabbit: r}
 }
 
-// Calcula el nivel de estrés basado en temperatura y oxigenación
-func calcularNivelStressFromData(temperatura float64, oxigenacion float64) string {
-	if (temperatura > 38.5) || (oxigenacion < 90) {
-		return "Alto"
-	}
-	if (temperatura >= 37.6 && temperatura <= 38.5) || (oxigenacion >= 90 && oxigenacion <= 94) {
-		return "Medio"
-	}
-	if (temperatura >= 36 && temperatura <= 37.5) && (oxigenacion >= 95) {
-		return "Bajo"
-	}
-	return "Medio" // Valor por defecto
-}
-
 // Calcula el estrés basado en los últimos datos guardados
 func (acs *AutoCalculateStress) Execute(esp32ID string) error {
 	fmt.Printf("=== INICIANDO CÁLCULO DE ESTRÉS PARA ESP32: %s ===\n", esp32ID)

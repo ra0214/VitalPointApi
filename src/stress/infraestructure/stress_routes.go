@@ -17,17 +17,17 @@ func SetupStressRouter(repo domain.IStress, rabbitRepo domain.IStressRabbitMQ) *
 	viewStress := application.NewViewStress(repo)
 	viewStressController := NewViewStressController(viewStress)
 
-	// NUEVO: Obtener datos y calcular estrés manualmente
-	getDataStress := application.NewGetDataAndCalculateStress(repo, rabbitRepo)
-	getDataStressController := NewGetDataStressController(getDataStress)
+	// ❌ DESACTIVADO: Obtener datos y calcular estrés manualmente
+	// getDataStress := application.NewGetDataAndCalculateStress(repo, rabbitRepo)
+	// getDataStressController := NewGetDataStressController(getDataStress)
 
 	// Rutas existentes
 	r.POST("/stress", createStressController.Execute)
 	r.GET("/stress", viewStressController.Execute)
 
-	// NUEVAS rutas para manejo manual
-	r.GET("/stress/data", getDataStressController.GetData)     // Obtener datos
-	r.POST("/stress/save", getDataStressController.SaveStress) // Guardar estrés
+	// ❌ DESACTIVADO: rutas para manejo manual
+	// r.GET("/stress/data", getDataStressController.GetData)       // Obtener datos
+	// r.POST("/stress/save", getDataStressController.SaveStress)   // Guardar estrés
 
 	return r
 }

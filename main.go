@@ -5,6 +5,7 @@ import (
 	mlxInfra "vitalPoint/src/blood-oxygenation/infraestructure"
 	maxInfra "vitalPoint/src/body-temperature/infraestructure"
 	"vitalPoint/src/config"
+	stressApp "vitalPoint/src/stress/application" // ← AGREGAR ESTA LÍNEA
 	stress "vitalPoint/src/stress/infraestructure"
 	sugar "vitalPoint/src/sugar-orine/infraestructure"
 	phInfra "vitalPoint/src/urine-ph/infraestructure"
@@ -48,10 +49,10 @@ func main() {
 	stressRabbit := stress.NewRabbitRepository(rabbitMQRepo.Ch)
 	sugarRabbit := sugar.NewRabbitRepository(rabbitMQRepo.Ch)
 
-	// **NUEVO: Iniciar cálculo automático de estrés cada minuto**
-	// autoCalculateStress := stressApp.NewAutoCalculateStress(stressRepo, stressRabbit)
-	// autoCalculateStress.StartAutoCalculation("1ESP32") // Usa el mismo esp32_id que tienes en las tablas
-	// log.Println("Cálculo automático de estrés iniciado (cada minuto)")
+	// ✅ ACTIVAR: Cálculo automático de estrés cada minuto
+	autoCalculateStress := stressApp.NewAutoCalculateStress(stressRepo, stressRabbit)
+	autoCalculateStress.StartAutoCalculation("1ESP32") // Usa el mismo esp32_id que tienes en las tablas
+	log.Println("✅ Cálculo automático de estrés iniciado (cada minuto)")
 
 	userRouter := userInfra.SetupRouter(userRepo)
 	for _, route := range userRouter.Routes() {
