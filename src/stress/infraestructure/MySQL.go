@@ -69,7 +69,8 @@ func (mysql *MySQL) GetAll() ([]domain.Stress, error) {
 
 // Obtener la última temperatura para un ESP32
 func (mysql *MySQL) GetLatestTemperature(esp32ID string) (float64, error) {
-	query := "SELECT stress FROM bodyTemperature WHERE esp32ID = ? ORDER BY tiempo DESC LIMIT 1"
+	// Usar temp_objeto que parece ser la temperatura corporal
+	query := "SELECT temp_objeto FROM bodytemp WHERE esp32_id = ? ORDER BY tiempo DESC LIMIT 1"
 	rows, err := mysql.conn.FetchRows(query, esp32ID)
 	if err != nil {
 		return 0, fmt.Errorf("Error al obtener la última temperatura: %v", err)
@@ -87,7 +88,8 @@ func (mysql *MySQL) GetLatestTemperature(esp32ID string) (float64, error) {
 
 // Obtener la última oxigenación para un ESP32
 func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
-	query := "SELECT spo2 FROM bloodOxygenation WHERE esp32ID = ? ORDER BY tiempo DESC LIMIT 1"
+	// Cambiar a bloodoxygenation y esp32ID
+	query := "SELECT spo2 FROM bloodoxygenation WHERE esp32ID = ? AND spo2 IS NOT NULL ORDER BY tiempo DESC LIMIT 1"
 	rows, err := mysql.conn.FetchRows(query, esp32ID)
 	if err != nil {
 		return 0, fmt.Errorf("Error al obtener la última oxigenación: %v", err)

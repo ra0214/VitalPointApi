@@ -51,7 +51,7 @@ func main() {
 
 	// **NUEVO: Iniciar cálculo automático de estrés cada minuto**
 	autoCalculateStress := stressApp.NewAutoCalculateStress(stressRepo, stressRabbit)
-	autoCalculateStress.StartAutoCalculation("1ESP32") // Cambia por tu ESP32 ID
+	autoCalculateStress.StartAutoCalculation("1ESP32") // Usa el mismo esp32_id que tienes en las tablas
 	log.Println("Cálculo automático de estrés iniciado (cada minuto)")
 
 	userRouter := userInfra.SetupRouter(userRepo)
