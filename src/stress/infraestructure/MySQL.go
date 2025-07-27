@@ -36,7 +36,7 @@ func (mysql *MySQL) SaveStress(esp32ID string, tiempo string, stress string) err
 	}
 
 	if rowsAffected == 1 {
-		log.Printf("[MySQL] - estres guardado correctamente: Esp32ID:%s Estres:%s", esp32ID, stress)
+		log.Printf("[MySQL] - estrés guardado correctamente: Esp32ID:%s Estrés:%s", esp32ID, stress)
 	} else {
 		log.Println("[MySQL] - No se insertó ninguna fila")
 	}
@@ -65,4 +65,40 @@ func (mysql *MySQL) GetAll() ([]domain.Stress, error) {
 		return nil, fmt.Errorf("Error iterando sobre las filas: %v", err)
 	}
 	return stresss, nil
+}
+
+// Obtener la última temperatura para un ESP32
+func (mysql *MySQL) GetLatestTemperature(esp32ID string) (float64, error) {
+	query := "SELECT stress FROM bodyTemperature WHERE esp32ID = ? ORDER BY tiempo DESC LIMIT 1"
+	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	if err != nil {
+		return 0, fmt.Errorf("Error al obtener la última temperatura: %v", err)
+	}
+	defer rows.Close()
+
+	var temperature float64
+	if rows.Next() {
+		if err := rows.Scan(&temperature); err != nil {
+			return 0, fmt.Errorf("Error al escanear temperatura: %v", err)
+		}
+	}
+	return temperature, nil
+}
+
+// Obtener la última oxigenación para un ESP32
+func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
+	query := "SELECT spo2 FROM bloodOxygenation WHERE esp32ID = ? ORDER BY tiempo DESC LIMIT 1"
+	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	if err != nil {
+		return 0, fmt.Errorf("Error al obtener la última oxigenación: %v", err)
+	}
+	defer rows.Close()
+
+	var oxygenation float64
+	if rows.Next() {
+		if err := rows.Scan(&oxygenation); err != nil {
+			return 0, fmt.Errorf("Error al escanear oxigenación: %v", err)
+		}
+	}
+	return oxygenation, nil
 }

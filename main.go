@@ -1,16 +1,17 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-
-	"vitalPoint/src/config"
 	"log"
 	mlxInfra "vitalPoint/src/blood-oxygenation/infraestructure"
 	maxInfra "vitalPoint/src/body-temperature/infraestructure"
-	userInfra "vitalPoint/src/users/infraestructure"
-	phInfra "vitalPoint/src/urine-ph/infraestructure"
+	"vitalPoint/src/config"
+	stressApp "vitalPoint/src/stress/application"
 	stress "vitalPoint/src/stress/infraestructure"
 	sugar "vitalPoint/src/sugar-orine/infraestructure"
+	phInfra "vitalPoint/src/urine-ph/infraestructure"
+	userInfra "vitalPoint/src/users/infraestructure"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -20,12 +21,12 @@ func main() {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	
+
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
 		}
-		c.Next()	
+		c.Next()
 	})
 
 	// Inicializar repositorios MYSQL
@@ -47,6 +48,11 @@ func main() {
 	phRabbit := phInfra.NewRabbitRepository(rabbitMQRepo.Ch)
 	stressRabbit := stress.NewRabbitRepository(rabbitMQRepo.Ch)
 	sugarRabbit := sugar.NewRabbitRepository(rabbitMQRepo.Ch)
+
+	// **NUEVO: Iniciar cálculo automático de estrés cada minuto**
+	autoCalculateStress := stressApp.NewAutoCalculateStress(stressRepo, stressRabbit)
+	autoCalculateStress.StartAutoCalculation("1ESP32") // Cambia por tu ESP32 ID
+	log.Println("Cálculo automático de estrés iniciado (cada minuto)")
 
 	userRouter := userInfra.SetupRouter(userRepo)
 	for _, route := range userRouter.Routes() {
