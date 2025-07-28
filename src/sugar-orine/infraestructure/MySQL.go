@@ -70,42 +70,32 @@ func (mysql *MySQL) GetAll() ([]domain.SugarOrine, error) {
 func (mysql *MySQL) GetStats() (*domain.SugarOrineStats, error) {
 	var stats domain.SugarOrineStats
 
-	// Consulta para frecuencias por categoría
-	freqQuery := `
+	// Query para obtener frecuencias por nivel
+	query := `
         SELECT 
             glucosa as valor,
             COUNT(*) as frecuencia
         FROM sugar_orine 
-        WHERE glucosa IS NOT NULL
         GROUP BY glucosa
-        ORDER BY 
-            CASE 
-                WHEN glucosa = 'Normal' THEN 1
-                WHEN glucosa = 'Moderado' THEN 2
-                WHEN glucosa = 'Alto' THEN 3
-                ELSE 4
-            END
     `
 
-	rows, err := mysql.conn.DB.Query(freqQuery)
+	rows, err := mysql.conn.FetchRows(query)
 	if err != nil {
-		return nil, fmt.Errorf("error al obtener frecuencias: %v", err)
+		return nil, fmt.Errorf("error al obtener estadísticas: %v", err)
 	}
 	defer rows.Close()
 
 	var frecuencias []domain.FrecuenciaData
-	var total float64 = 0
+	var total float64
 	countMap := make(map[string]int)
 
 	for rows.Next() {
 		var f domain.FrecuenciaData
-		var valorStr string
-		if err := rows.Scan(&valorStr, &f.Frecuencia); err != nil {
+		if err := rows.Scan(&f.Valor, &f.Frecuencia); err != nil {
 			return nil, fmt.Errorf("error al escanear frecuencia: %v", err)
 		}
-		f.Valor = valorStr
 		frecuencias = append(frecuencias, f)
-		countMap[valorStr] = f.Frecuencia
+		countMap[f.Valor] = f.Frecuencia
 		total += float64(f.Frecuencia)
 	}
 
