@@ -139,7 +139,12 @@ func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelati
                 ORDER BY tiempo DESC
                 LIMIT 1
             ), 0) as oxigenacion,
-            s.stress,
+            CASE LOWER(s.stress)
+                WHEN 'alto' THEN 'Alto'
+                WHEN 'medio' THEN 'Medio'
+                WHEN 'bajo' THEN 'Bajo'
+                ELSE 'Medio'
+            END as stress,
             s.tiempo as timestamp
         FROM stress s
         WHERE s.esp32ID = ?
