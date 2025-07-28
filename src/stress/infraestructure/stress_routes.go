@@ -33,7 +33,7 @@ func SetupStressRouter(repo domain.IStress, rabbitRepo domain.IStressRabbitMQ) *
 	r.POST("/stress", createStressController.Execute)
 	r.GET("/stress", viewStressController.Execute)
 
-	// Nueva ruta para datos de correlación
+	// Ruta separada para correlación
 	r.GET("/stress/correlation", func(c *gin.Context) {
 		esp32ID := c.DefaultQuery("esp32_id", "ESP32_001")
 

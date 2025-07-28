@@ -23,9 +23,8 @@ func NewViewStressController(useCase *application.ViewStress, repo domain.IStres
 func (vc *ViewStressController) Execute(c *gin.Context) {
 	c.Header("Access-Control-Allow-Origin", "*")
 
-	esp32ID := c.DefaultQuery("esp32_id", "ESP32_001")
-
-	data, err := vc.repo.GetCorrelationData(esp32ID)
+	// Obtener todos los datos de estrés
+	data, err := vc.useCase.Execute()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":    "Error al obtener los datos",
@@ -34,20 +33,6 @@ func (vc *ViewStressController) Execute(c *gin.Context) {
 		return
 	}
 
-	// Procesar datos para la visualización
-	result := gin.H{
-		"correlationData": data,
-		"summary": map[string]int{
-			"Alto":  0,
-			"Medio": 0,
-			"Bajo":  0,
-		},
-	}
-
-	// Contar ocurrencias de cada nivel de estrés
-	for _, d := range data {
-		result["summary"].(map[string]int)[d.Stress]++
-	}
-
-	c.JSON(http.StatusOK, result)
+	// Devolver los datos directamente
+	c.JSON(http.StatusOK, data)
 }
