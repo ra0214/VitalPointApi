@@ -47,15 +47,20 @@ func SetupStressRouter(repo domain.IStress, rabbitRepo domain.IStressRabbitMQ) *
 			return
 		}
 
-		if len(correlationData) == 0 {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "No se encontraron datos de correlación",
+		// Transformar los datos al formato esperado
+		var formattedData []gin.H
+		for _, d := range correlationData {
+			formattedData = append(formattedData, gin.H{
+				"esp32_id":    d.ESP32ID,
+				"temperatura": d.Temperatura,
+				"oxigenacion": d.Oxigenacion,
+				"stress":      d.Stress,
+				"timestamp":   d.Timestamp,
 			})
-			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"correlationData": correlationData,
+			"correlationData": formattedData,
 		})
 	})
 

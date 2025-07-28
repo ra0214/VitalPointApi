@@ -122,37 +122,41 @@ func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
 func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelation, error) {
 	query := `
         SELECT 
-            s.tiempo,
-            (SELECT temp_objeto 
-             FROM bodytemp 
-             WHERE esp32_id = ? 
-             AND tiempo <= s.tiempo 
-             ORDER BY tiempo DESC 
-             LIMIT 1) as temperatura,
-            (SELECT spo2 
-             FROM bloodoxygenation 
-             WHERE esp32ID = ? 
-             AND tiempo <= s.tiempo 
-             ORDER BY tiempo DESC 
-             LIMIT 1) as oxigenacion,
-            s.stress
+            s.esp32ID,
+            bt.temp_objeto as temperatura,
+            bo.spo2 as oxigenacion,
+            s.stress,
+            s.tiempo as timestamp
         FROM stress s
+        LEFT JOIN bodytemp bt ON bt.esp32_id = s.esp32ID 
+            AND bt.tiempo <= s.tiempo
+        LEFT JOIN bloodoxygenation bo ON bo.esp32ID = s.esp32ID 
+            AND bo.tiempo <= s.tiempo
         WHERE s.esp32ID = ?
+        GROUP BY s.id
         ORDER BY s.tiempo DESC
         LIMIT 20`
 
-	rows, err := mysql.conn.FetchRows(query, esp32ID, esp32ID, esp32ID)
+	rows, err := mysql.conn.FetchRows(query, esp32ID)
 	if err != nil {
-		return nil, fmt.Errorf("Error obteniendo datos de correlación: %v", err)
+		return nil, fmt.Errorf("error en consulta: %v", err)
 	}
 	defer rows.Close()
 
 	var correlations []domain.StressCorrelation
 	for rows.Next() {
 		var c domain.StressCorrelation
-		if err := rows.Scan(&c.Timestamp, &c.Temperatura, &c.Oxigenacion, &c.Stress); err != nil {
-			return nil, fmt.Errorf("Error escaneando datos: %v", err)
+		err := rows.Scan(
+			&c.ESP32ID,
+			&c.Temperatura,
+			&c.Oxigenacion,
+			&c.Stress,
+			&c.Timestamp,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error escaneando fila: %v", err)
 		}
+
 		// Solo agregar si tenemos datos válidos
 		if c.Temperatura > 0 && c.Oxigenacion > 0 {
 			correlations = append(correlations, c)

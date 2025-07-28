@@ -12,10 +12,11 @@ type IStress interface {
 
 // Nueva estructura para datos de correlación
 type StressCorrelation struct {
-	Timestamp   string  `json:"timestamp"`
+	ESP32ID     string  `json:"esp32_id"`
 	Temperatura float64 `json:"temperatura"`
 	Oxigenacion float64 `json:"oxigenacion"`
 	Stress      string  `json:"stress"`
+	Timestamp   string  `json:"timestamp"`
 }
 
 type Stress struct {
