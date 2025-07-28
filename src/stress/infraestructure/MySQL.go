@@ -123,21 +123,28 @@ func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelati
 	query := `
         SELECT 
             s.esp32ID,
-            bt.temp_objeto as temperatura,
-            bo.spo2 as oxigenacion,
+            COALESCE(bt.temp_objeto, 0) as temperatura,
+            COALESCE(bo.spo2, 0) as oxigenacion,
             s.stress,
             s.tiempo as timestamp
         FROM stress s
         LEFT JOIN bodytemp bt ON bt.esp32_id = s.esp32ID 
-            AND bt.tiempo <= s.tiempo
+            AND bt.tiempo = (
+                SELECT MAX(tiempo)
+                FROM bodytemp
+                WHERE esp32_id = s.esp32ID AND tiempo <= s.tiempo
+            )
         LEFT JOIN bloodoxygenation bo ON bo.esp32ID = s.esp32ID 
-            AND bo.tiempo <= s.tiempo
+            AND bo.tiempo = (
+                SELECT MAX(tiempo)
+                FROM bloodoxygenation
+                WHERE esp32ID = s.esp32ID AND tiempo <= s.tiempo
+            )
         WHERE s.esp32ID = ?
-        GROUP BY s.id
         ORDER BY s.tiempo DESC
         LIMIT 20`
 
-	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	rows, err := mysql.conn.DB.Query(query, esp32ID)
 	if err != nil {
 		return nil, fmt.Errorf("error en consulta: %v", err)
 	}
@@ -156,9 +163,8 @@ func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelati
 		if err != nil {
 			return nil, fmt.Errorf("error escaneando fila: %v", err)
 		}
-
 		// Solo agregar si tenemos datos válidos
-		if c.Temperatura > 0 && c.Oxigenacion > 0 {
+		if c.Temperatura > 0 || c.Oxigenacion > 0 {
 			correlations = append(correlations, c)
 		}
 	}
