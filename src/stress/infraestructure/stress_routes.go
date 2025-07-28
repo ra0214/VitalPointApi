@@ -36,54 +36,26 @@ func SetupStressRouter(repo domain.IStress, rabbitRepo domain.IStressRabbitMQ) *
 
 	// Ruta para datos de correlación
 	r.GET("/stress/correlation", func(c *gin.Context) {
-		esp32ID := c.DefaultQuery("esp32_id", "ESP32_001")
+		esp32ID := c.DefaultQuery("esp32_id", "1ESP32")
 
-		temp, err := repo.GetLatestTemperature(esp32ID)
+		correlationData, err := repo.GetCorrelationData(esp32ID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "Error al obtener temperatura",
+				"error":   "Error al obtener datos de correlación",
 				"details": err.Error(),
 			})
 			return
 		}
 
-		oxy, err := repo.GetLatestOxygenation(esp32ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "Error al obtener oxigenación",
-				"details": err.Error(),
-			})
-			return
-		}
-
-		stress, err := repo.GetLatestStress(esp32ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "Error al obtener estrés",
-				"details": err.Error(),
-			})
-			return
-		}
-
-		// Validar que los datos sean válidos
-		if temp <= 0 || oxy <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error":   "Datos inválidos",
-				"details": "Temperatura u oxigenación con valores no válidos",
+		if len(correlationData) == 0 {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "No se encontraron datos de correlación",
 			})
 			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"correlationData": []gin.H{
-				{
-					"esp32_id":    esp32ID,
-					"temperatura": temp,
-					"oxigenacion": oxy,
-					"stress":      stress.Stress,
-					"timestamp":   stress.Timestamp,
-				},
-			},
+			"correlationData": correlationData,
 		})
 	})
 

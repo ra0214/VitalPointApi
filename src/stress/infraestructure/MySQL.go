@@ -121,19 +121,27 @@ func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
 
 func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelation, error) {
 	query := `
-        SELECT bt.temp_objeto, bo.spo2, s.stress, s.tiempo
+        SELECT 
+            s.tiempo,
+            (SELECT temp_objeto 
+             FROM bodytemp 
+             WHERE esp32_id = ? 
+             AND tiempo <= s.tiempo 
+             ORDER BY tiempo DESC 
+             LIMIT 1) as temperatura,
+            (SELECT spo2 
+             FROM bloodoxygenation 
+             WHERE esp32ID = ? 
+             AND tiempo <= s.tiempo 
+             ORDER BY tiempo DESC 
+             LIMIT 1) as oxigenacion,
+            s.stress
         FROM stress s
-        INNER JOIN bodytemp bt ON DATE(bt.tiempo) = DATE(s.tiempo) 
-            AND HOUR(bt.tiempo) = HOUR(s.tiempo) 
-            AND MINUTE(bt.tiempo) = MINUTE(s.tiempo)
-        INNER JOIN bloodoxygenation bo ON DATE(bo.tiempo) = DATE(s.tiempo)
-            AND HOUR(bo.tiempo) = HOUR(s.tiempo)
-            AND MINUTE(bo.tiempo) = MINUTE(s.tiempo)
         WHERE s.esp32ID = ?
         ORDER BY s.tiempo DESC
-        LIMIT 50`
+        LIMIT 20`
 
-	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	rows, err := mysql.conn.FetchRows(query, esp32ID, esp32ID, esp32ID)
 	if err != nil {
 		return nil, fmt.Errorf("Error obteniendo datos de correlación: %v", err)
 	}
@@ -142,10 +150,13 @@ func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelati
 	var correlations []domain.StressCorrelation
 	for rows.Next() {
 		var c domain.StressCorrelation
-		if err := rows.Scan(&c.Temperatura, &c.Oxigenacion, &c.Stress, &c.Timestamp); err != nil {
+		if err := rows.Scan(&c.Timestamp, &c.Temperatura, &c.Oxigenacion, &c.Stress); err != nil {
 			return nil, fmt.Errorf("Error escaneando datos: %v", err)
 		}
-		correlations = append(correlations, c)
+		// Solo agregar si tenemos datos válidos
+		if c.Temperatura > 0 && c.Oxigenacion > 0 {
+			correlations = append(correlations, c)
+		}
 	}
 
 	return correlations, nil
