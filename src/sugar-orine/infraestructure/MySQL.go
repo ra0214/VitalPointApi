@@ -75,7 +75,7 @@ func (mysql *MySQL) GetStats() (*domain.SugarOrineStats, error) {
         SELECT 
             glucosa as valor,
             COUNT(*) as frecuencia
-        FROM sugar_orine 
+        FROM sugarorine 
         GROUP BY glucosa
     `
 
