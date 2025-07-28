@@ -70,34 +70,21 @@ func (mysql *MySQL) GetAll() ([]domain.SugarOrine, error) {
 func (mysql *MySQL) GetStats() (*domain.SugarOrineStats, error) {
 	var stats domain.SugarOrineStats
 
-	// Consulta para estadísticas básicas
-	statsQuery := `
-        SELECT 
-            AVG(CAST(glucosa AS DECIMAL(10,2))) as media,
-            MIN(CAST(glucosa AS DECIMAL(10,2))) as minimo,
-            MAX(CAST(glucosa AS DECIMAL(10,2))) as maximo,
-            STD(CAST(glucosa AS DECIMAL(10,2))) as desviacion_estandar
-        FROM sugarorine
-    `
-
-	err := mysql.conn.DB.QueryRow(statsQuery).Scan(
-		&stats.Media,
-		&stats.Minimo,
-		&stats.Maximo,
-		&stats.DesviacionEstandar,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("error al obtener estadísticas básicas: %v", err)
-	}
-
-	// Consulta para frecuencias
+	// Consulta para frecuencias por categoría
 	freqQuery := `
         SELECT 
-            CAST(glucosa AS DECIMAL(10,2)) as valor,
+            glucosa as valor,
             COUNT(*) as frecuencia
-        FROM sugarorine 
+        FROM sugar_orine 
+        WHERE glucosa IS NOT NULL
         GROUP BY glucosa
-        ORDER BY glucosa
+        ORDER BY 
+            CASE 
+                WHEN glucosa = 'Normal' THEN 1
+                WHEN glucosa = 'Moderado' THEN 2
+                WHEN glucosa = 'Alto' THEN 3
+                ELSE 4
+            END
     `
 
 	rows, err := mysql.conn.DB.Query(freqQuery)
@@ -107,14 +94,27 @@ func (mysql *MySQL) GetStats() (*domain.SugarOrineStats, error) {
 	defer rows.Close()
 
 	var frecuencias []domain.FrecuenciaData
+	var total float64 = 0
+	countMap := make(map[string]int)
+
 	for rows.Next() {
 		var f domain.FrecuenciaData
-		if err := rows.Scan(&f.Valor, &f.Frecuencia); err != nil {
+		var valorStr string
+		if err := rows.Scan(&valorStr, &f.Frecuencia); err != nil {
 			return nil, fmt.Errorf("error al escanear frecuencia: %v", err)
 		}
+		f.Valor = valorStr
 		frecuencias = append(frecuencias, f)
+		countMap[valorStr] = f.Frecuencia
+		total += float64(f.Frecuencia)
 	}
 
 	stats.FrecuenciaData = frecuencias
+
+	// Calcular porcentajes
+	stats.Normal = float64(countMap["Normal"]) / total * 100
+	stats.Moderado = float64(countMap["Moderado"]) / total * 100
+	stats.Alto = float64(countMap["Alto"]) / total * 100
+
 	return &stats, nil
 }

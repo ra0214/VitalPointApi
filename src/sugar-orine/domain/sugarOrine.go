@@ -14,18 +14,15 @@ type SugarOrine struct {
 }
 
 type SugarOrineStats struct {
-	Media              float64          `json:"media"`
-	Mediana            float64          `json:"mediana"`
-	Moda               float64          `json:"moda"`
-	DesviacionEstandar float64          `json:"desviacion_estandar"`
-	Minimo             float64          `json:"minimo"`
-	Maximo             float64          `json:"maximo"`
-	FrecuenciaData     []FrecuenciaData `json:"frecuenciaData"`
+	FrecuenciaData []FrecuenciaData `json:"frecuenciaData"`
+	Normal         float64          `json:"normal"`
+	Moderado       float64          `json:"moderado"`
+	Alto           float64          `json:"alto"`
 }
 
 type FrecuenciaData struct {
-	Valor      float64 `json:"valor"`
-	Frecuencia int     `json:"frecuencia"`
+	Valor      string `json:"valor"`
+	Frecuencia int    `json:"frecuencia"`
 }
 
 func NewSugarOrine(esp32ID string, tiempo string, glucosa string) *SugarOrine {
