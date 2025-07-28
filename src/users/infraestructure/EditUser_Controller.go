@@ -29,13 +29,14 @@ func (eu_c *EditUserController) Execute(c *gin.Context) {
 	    UserName	string `json:"userName"`
 	    Email 		string `json:"email"`
 	    Password	string `json:"password"`
+		Role		string `json:"role"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error al leer los datos"})
 		return
 	}
 
-	err = eu_c.useCase.Execute(int32(id), body.UserName, body.Email, body.Password)
+	err = eu_c.useCase.Execute(int32(id), body.UserName, body.Email, body.Password, body.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al actualizar el usuario", "detalles": err.Error()})
 		return

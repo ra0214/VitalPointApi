@@ -7,14 +7,14 @@ import (
 )
 
 type CreateUser struct {
-	db domain.IUser
+	repo domain.IUser
 }
 
-func NewCreateUser(db domain.IUser) *CreateUser {
-	return &CreateUser{db: db}
+func NewCreateUser(repo domain.IUser) *CreateUser {
+	return &CreateUser{repo: repo}
 }
 
-func (cu *CreateUser) Execute(userName string, email string, password string) error {
+func (cu *CreateUser) Execute(userName string, email string, password string, role string) error {
 	// Generar hash de la contraseña
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -22,7 +22,7 @@ func (cu *CreateUser) Execute(userName string, email string, password string) er
 	}
 
 	// Guardar usuario con el ESP32ID
-	err = cu.db.SaveUser(userName, email, string(hashedPassword))
+	err = cu.repo.SaveUser(userName, email, string(hashedPassword), role)
 	if err != nil {
 		return err
 	}

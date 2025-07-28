@@ -21,24 +21,22 @@ func NewMySQL() domain.IUser {
 	return &MySQL{conn: conn}
 }
 
-func (mysql *MySQL) SaveUser(userName string, email string, password string) error {
-	query := "INSERT INTO user (userName, email, password) VALUES (?, ?, ?)"
-	result, err := mysql.conn.ExecutePreparedQuery(query, userName, email, password)
+func (mysql *MySQL) SaveUser(userName string, email string, password string, role string) error {
+	query := "INSERT INTO user (userName, email, password, role) VALUES (?, ?, ?, ?)"
+	result, err := mysql.conn.ExecutePreparedQuery(query, userName, email, password, role)
 	if err != nil {
 		return fmt.Errorf("error al ejecutar la consulta: %v", err)
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 1 {
-		log.Printf("[MySQL] - Usuario creado correctamente: Username:%s Email:%s", userName, email)
-	} else {
-		log.Println("[MySQL] - No se insertó ninguna fila")
+		log.Printf("[MySQL] - Usuario creado correctamente: Username:%s Email:%s Role:%s", userName, email, role)
 	}
 	return nil
 }
 
 func (mysql *MySQL) GetAll() ([]domain.User, error) {
-	query := "SELECT id, userName, email, password FROM user"
+	query := "SELECT id, userName, email, password, role FROM user"
 	rows, err := mysql.conn.FetchRows(query)
 	if err != nil {
 		return nil, fmt.Errorf("Error al ejecutar la consulta SELECT: %v", err)
@@ -49,8 +47,8 @@ func (mysql *MySQL) GetAll() ([]domain.User, error) {
 
 	for rows.Next() {
 		var user domain.User
-		if err := rows.Scan(&user.ID, &user.UserName, &user.Email, &user.Password); err != nil {
-			return nil, fmt.Errorf("Error al escanear la fila: %v", err)
+		if err := rows.Scan(&user.ID, &user.UserName, &user.Email, &user.Password, &user.Role); err != nil {
+			return nil, fmt.Errorf("error al escanear la fila: %v", err)
 		}
 		users = append(users, user)
 	}
@@ -61,18 +59,16 @@ func (mysql *MySQL) GetAll() ([]domain.User, error) {
 	return users, nil
 }
 
-func (mysql *MySQL) UpdateUser(id int32, userName string, email string, password string) error {
-	query := "UPDATE user SET userName = ?, email = ?, password = ? WHERE id = ?"
-	result, err := mysql.conn.ExecutePreparedQuery(query, userName, email, password, id)
+func (mysql *MySQL) UpdateUser(id int32, userName string, email string, password string, role string) error {
+	query := "UPDATE user SET userName = ?, email = ?, password = ?, role = ? WHERE id = ?"
+	result, err := mysql.conn.ExecutePreparedQuery(query, userName, email, password, role, id)
 	if err != nil {
-		return fmt.Errorf("Error al ejecutar la consulta: %v", err)
+		return fmt.Errorf("error al ejecutar la consulta: %v", err)
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 1 {
-		log.Printf("[MySQL] - Usuario actualizado correctamente: ID: %d Username:%s Email: %s", id, userName, email)
-	} else {
-		log.Println("[MySQL] - No se actualizó ninguna fila")
+		log.Printf("[MySQL] - Usuario actualizado correctamente: ID:%d Username:%s Email:%s Role:%s", id, userName, email, role)
 	}
 	return nil
 }
