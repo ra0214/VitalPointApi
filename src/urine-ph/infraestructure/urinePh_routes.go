@@ -19,5 +19,9 @@ func SetupUrinePhRouter(repo domain.IUrinePh, rabbitRepo domain.IUrinePhRabbitMQ
 	r.POST("/urinepH", createUrinePhController.Execute)
 	r.GET("/urinepH", viewUrinePhController.Execute)
 
+	// Agregar ruta para estadísticas
+	viewUrinePhStats := NewViewUrinePhStatsController(repo)
+	r.GET("/urinepH/stats", viewUrinePhStats.Execute)
+
 	return r
 }

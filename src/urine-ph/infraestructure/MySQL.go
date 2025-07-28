@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"vitalPoint/src/config"
+	"vitalPoint/src/urine-ph/application" // Cambiamos este import
 	"vitalPoint/src/urine-ph/domain"
 )
 
@@ -65,4 +66,24 @@ func (mysql *MySQL) GetAll() ([]domain.UrinePh, error) {
 		return nil, fmt.Errorf("Error iterando sobre las filas: %v", err)
 	}
 	return urinePhs, nil
+}
+
+// Implementar el nuevo método GetStats
+func (mysql *MySQL) GetStats() (*domain.UrinePhStats, error) {
+	// Obtener todos los registros
+	readings, err := mysql.GetAll()
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener los datos: %v", err)
+	}
+
+	// Crear el analizador y pasarle los datos directamente
+	analyzer := application.NewAnalyzeUrinePh()
+
+	// Ejecutar el análisis pasando los datos
+	stats, err := analyzer.Execute(readings)
+	if err != nil {
+		return nil, fmt.Errorf("error al analizar los datos: %v", err)
+	}
+
+	return stats, nil
 }
