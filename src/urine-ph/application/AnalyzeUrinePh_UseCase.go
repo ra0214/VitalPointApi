@@ -92,7 +92,7 @@ func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStat
 	}
 
 	// Solo calcular ANOVA si hay suficientes datos
-	if len(morning) > 0 && len(afternoon) > 0 && len(evening) > 0 {
+	if len(morning) >= 3 && len(afternoon) >= 3 && len(evening) >= 3 {
 		stats.EstadisticoF, stats.ValorP = calcularANOVA(morning, afternoon, evening)
 		stats.SignificanciaEstadistica = stats.ValorP < 0.05
 	}

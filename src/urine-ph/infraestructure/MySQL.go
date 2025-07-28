@@ -45,7 +45,7 @@ func (mysql *MySQL) SaveUrinePh(esp32ID string, tiempo string, ph float64) error
 }
 
 func (mysql *MySQL) GetAll() ([]domain.UrinePh, error) {
-	query := "SELECT id, esp32ID, tiempo, ph FROM urineph"
+	query := "SELECT id, esp32ID, tiempo, ph FROM urineph ORDER BY tiempo"
 	rows, err := mysql.conn.FetchRows(query)
 	if err != nil {
 		return nil, fmt.Errorf("Error al ejecutar la consulta SELECT: %v", err)
@@ -59,12 +59,8 @@ func (mysql *MySQL) GetAll() ([]domain.UrinePh, error) {
 		if err := rows.Scan(&urinePh.ID, &urinePh.ESP32ID, &urinePh.Timestamp, &urinePh.PH); err != nil {
 			return nil, fmt.Errorf("Error al escanear la fila: %v", err)
 		}
-		log.Printf("Dato leído: ID=%d, ESP32ID=%s, Tiempo=%s, PH=%.2f",
-			urinePh.ID, urinePh.ESP32ID, urinePh.Timestamp, urinePh.PH)
 		urinePhs = append(urinePhs, urinePh)
 	}
-
-	log.Printf("Total de registros leídos: %d", len(urinePhs))
 
 	return urinePhs, nil
 }
@@ -75,6 +71,23 @@ func (mysql *MySQL) GetStats() (*domain.UrinePhStats, error) {
 	readings, err := mysql.GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("error al obtener los datos: %v", err)
+	}
+
+	// Si hay menos de 9 lecturas, devolver estadísticas vacías pero con el formato correcto
+	if len(readings) < 9 {
+		return &domain.UrinePhStats{
+			Media:        0,
+			DesvEstandar: 0,
+			GruposHorarios: []struct {
+				Periodo      string  `json:"periodo"`
+				Media        float64 `json:"media"`
+				DesvEstandar float64 `json:"desviacion_estandar"`
+				N            int     `json:"n"`
+			}{},
+			EstadisticoF:             0,
+			ValorP:                   0,
+			SignificanciaEstadistica: false,
+		}, nil
 	}
 
 	// Crear el analizador y pasarle los datos directamente
