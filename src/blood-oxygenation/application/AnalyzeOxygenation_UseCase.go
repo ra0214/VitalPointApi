@@ -19,6 +19,10 @@ type OxygenStats struct {
 	Frecuencias      []int     `json:"frecuencias"`
 	FrecAcumuladas   []int     `json:"frecAcumuladas"`
 	PorcentajeAcum   []float64 `json:"porcentajeAcum"`
+	NivelesSpO2      []struct {
+		Nivel      string  `json:"nivel"`
+		Porcentaje float64 `json:"porcentaje"`
+	} `json:"nivelesSpO2"`
 }
 
 type AnalyzeOxygenation struct {
@@ -62,6 +66,7 @@ func (a *AnalyzeOxygenation) Execute() (*OxygenStats, error) {
 	stats.Frecuencias = frecuencias
 	stats.FrecAcumuladas = frecAcumuladas
 	stats.PorcentajeAcum = porcentajeAcum
+	stats.NivelesSpO2 = calcularPorcentajesNiveles(values)
 
 	return stats, nil
 }
@@ -105,4 +110,39 @@ func calcularIntervalosOjiva(values []float64) ([]string, []int, []int, []float6
 	}
 
 	return clasesIntervalos, frecuencias, frecAcumuladas, porcentajeAcum
+}
+
+func calcularPorcentajesNiveles(values []float64) []struct {
+	Nivel      string  `json:"nivel"`
+	Porcentaje float64 `json:"porcentaje"`
+} {
+	total := float64(len(values))
+	niveles := make(map[string]int)
+
+	// Contar valores en cada nivel
+	for _, v := range values {
+		switch {
+		case v >= 95:
+			niveles["Normal (95-100%)"]++
+		case v >= 90:
+			niveles["Leve (90-94%)"]++
+		case v >= 85:
+			niveles["Moderado (85-89%)"]++
+		default:
+			niveles["Severo (<85%)"]++
+		}
+	}
+
+	// Convertir a porcentajes y usar la estructura con tags json
+	result := []struct {
+		Nivel      string  `json:"nivel"`
+		Porcentaje float64 `json:"porcentaje"`
+	}{
+		{Nivel: "Normal (95-100%)", Porcentaje: float64(niveles["Normal (95-100%)"]) / total * 100},
+		{Nivel: "Leve (90-94%)", Porcentaje: float64(niveles["Leve (90-94%)"]) / total * 100},
+		{Nivel: "Moderado (85-89%)", Porcentaje: float64(niveles["Moderado (85-89%)"]) / total * 100},
+		{Nivel: "Severo (<85%)", Porcentaje: float64(niveles["Severo (<85%)"]) / total * 100},
+	}
+
+	return result
 }

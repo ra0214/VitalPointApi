@@ -5,7 +5,7 @@ import (
 	mlxInfra "vitalPoint/src/blood-oxygenation/infraestructure"
 	maxInfra "vitalPoint/src/body-temperature/infraestructure"
 	"vitalPoint/src/config"
-	stressApp "vitalPoint/src/stress/application" // ← AGREGAR ESTA LÍNEA
+	stressApp "vitalPoint/src/stress/application"
 	stress "vitalPoint/src/stress/infraestructure"
 	sugar "vitalPoint/src/sugar-orine/infraestructure"
 	phInfra "vitalPoint/src/urine-ph/infraestructure"
