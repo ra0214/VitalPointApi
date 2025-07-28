@@ -35,7 +35,7 @@ func (acs *AutoCalculateStress) Execute(esp32ID string) error {
 	fmt.Printf("Oxigenación obtenida: %.2f\n", oxigenacion)
 
 	// Solo calcular si tenemos datos válidos
-	if temperatura == 0 && oxigenacion == 0 {
+	if temperatura <= 0 || oxigenacion <= 0 {
 		fmt.Printf("No hay datos válidos - Temperatura: %.2f, Oxigenación: %.2f\n", temperatura, oxigenacion)
 		return fmt.Errorf("no hay datos válidos para calcular estrés")
 	}

@@ -3,9 +3,18 @@ package domain
 type IStress interface {
 	SaveStress(esp32ID string, timestamp string, stress string) error
 	GetAll() ([]Stress, error)
-	// Nuevos métodos para obtener últimos datos
 	GetLatestTemperature(esp32ID string) (float64, error)
 	GetLatestOxygenation(esp32ID string) (float64, error)
+	// Nuevo método para obtener datos de correlación
+	GetCorrelationData(esp32ID string) ([]StressCorrelation, error)
+}
+
+// Nueva estructura para datos de correlación
+type StressCorrelation struct {
+	Timestamp   string  `json:"timestamp"`
+	Temperatura float64 `json:"temperatura"`
+	Oxigenacion float64 `json:"oxigenacion"`
+	Stress      string  `json:"stress"`
 }
 
 type Stress struct {

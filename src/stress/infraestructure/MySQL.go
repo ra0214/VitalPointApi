@@ -118,3 +118,35 @@ func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
 	}
 	return oxygenation, nil
 }
+
+func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelation, error) {
+	query := `
+        SELECT bt.temp_objeto, bo.spo2, s.stress, s.tiempo
+        FROM stress s
+        INNER JOIN bodytemp bt ON DATE(bt.tiempo) = DATE(s.tiempo) 
+            AND HOUR(bt.tiempo) = HOUR(s.tiempo) 
+            AND MINUTE(bt.tiempo) = MINUTE(s.tiempo)
+        INNER JOIN bloodoxygenation bo ON DATE(bo.tiempo) = DATE(s.tiempo)
+            AND HOUR(bo.tiempo) = HOUR(s.tiempo)
+            AND MINUTE(bo.tiempo) = MINUTE(s.tiempo)
+        WHERE s.esp32ID = ?
+        ORDER BY s.tiempo DESC
+        LIMIT 50`
+
+	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	if err != nil {
+		return nil, fmt.Errorf("Error obteniendo datos de correlación: %v", err)
+	}
+	defer rows.Close()
+
+	var correlations []domain.StressCorrelation
+	for rows.Next() {
+		var c domain.StressCorrelation
+		if err := rows.Scan(&c.Temperatura, &c.Oxigenacion, &c.Stress, &c.Timestamp); err != nil {
+			return nil, fmt.Errorf("Error escaneando datos: %v", err)
+		}
+		correlations = append(correlations, c)
+	}
+
+	return correlations, nil
+}
