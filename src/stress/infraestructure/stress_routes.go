@@ -1,7 +1,6 @@
 package infraestructure
 
 import (
-	"net/http"
 	"vitalPoint/src/stress/application"
 	"vitalPoint/src/stress/domain"
 
@@ -11,52 +10,24 @@ import (
 func SetupStressRouter(repo domain.IStress, rabbitRepo domain.IStressRabbitMQ) *gin.Engine {
 	r := gin.Default()
 
-	// Configurar CORS
-	r.Use(func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		c.Header("Access-Control-Allow-Headers", "Content-Type")
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-		c.Next()
-	})
+	// Casos de uso existentes
+	CreateStress := application.NewCreateStress(repo, rabbitRepo)
+	createStressController := NewCreateStressController(CreateStress)
 
-	// Crear casos de uso
-	calculateStress := application.NewAutoCalculateStress(repo, rabbitRepo)
-	getDataStress := application.NewGetDataAndCalculateStress(repo, rabbitRepo)
+	viewStress := application.NewViewStress(repo)
+	viewStressController := NewViewStressController(viewStress)
 
-	// Rutas
-	r.GET("/stress/:esp32id", func(c *gin.Context) {
-		esp32ID := c.Param("esp32id")
-		data, err := getDataStress.GetData(esp32ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, data)
-	})
+	// ❌ DESACTIVADO: Obtener datos y calcular estrés manualmente
+	// getDataStress := application.NewGetDataAndCalculateStress(repo, rabbitRepo)
+	// getDataStressController := NewGetDataStressController(getDataStress)
 
-	// Agregar nueva ruta para datos de correlación
-	r.GET("/stress/correlation/:esp32id", func(c *gin.Context) {
-		esp32ID := c.Param("esp32id")
-		data, err := repo.GetCorrelationData(esp32ID)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"data": data,
-		})
-	})
+	// Rutas existentes
+	r.POST("/stress", createStressController.Execute)
+	r.GET("/stress", viewStressController.Execute)
 
-	// Iniciar cálculo automático
-	go calculateStress.StartAutoCalculation("ESP32_001")
+	// ❌ DESACTIVADO: rutas para manejo manual
+	// r.GET("/stress/data", getDataStressController.GetData)       // Obtener datos
+	// r.POST("/stress/save", getDataStressController.SaveStress)   // Guardar estrés
 
 	return r
 }
