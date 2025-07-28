@@ -1,15 +1,17 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-
-	"vitalPoint/src/config"
 	"log"
 	mlxInfra "vitalPoint/src/blood-oxygenation/infraestructure"
 	maxInfra "vitalPoint/src/body-temperature/infraestructure"
-	userInfra "vitalPoint/src/users/infraestructure"
-	phInfra "vitalPoint/src/urine-ph/infraestructure"
+	"vitalPoint/src/config"
+	stressApp "vitalPoint/src/stress/application" // ← AGREGAR ESTA LÍNEA
+	stress "vitalPoint/src/stress/infraestructure"
 	sugar "vitalPoint/src/sugar-orine/infraestructure"
+	phInfra "vitalPoint/src/urine-ph/infraestructure"
+	userInfra "vitalPoint/src/users/infraestructure"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -19,12 +21,12 @@ func main() {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-	
+
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
 		}
-		c.Next()	
+		c.Next()
 	})
 
 	// Inicializar repositorios MYSQL
@@ -32,6 +34,7 @@ func main() {
 	maxRepo := maxInfra.NewMySQL()
 	mlxRepo := mlxInfra.NewMySQL()
 	phRepo := phInfra.NewMySQL()
+	stressRepo := stress.NewMySQL()
 	sugarRepo := sugar.NewMySQL()
 
 	rabbitMQRepo, err := config.GetChannel()
@@ -43,7 +46,13 @@ func main() {
 	maxRabbit := maxInfra.NewRabbitRepository(rabbitMQRepo.Ch)
 	mlxRabbit := mlxInfra.NewRabbitRepository(rabbitMQRepo.Ch)
 	phRabbit := phInfra.NewRabbitRepository(rabbitMQRepo.Ch)
+	stressRabbit := stress.NewRabbitRepository(rabbitMQRepo.Ch)
 	sugarRabbit := sugar.NewRabbitRepository(rabbitMQRepo.Ch)
+
+	// ✅ ACTIVAR: Cálculo automático de estrés cada minuto
+	autoCalculateStress := stressApp.NewAutoCalculateStress(stressRepo, stressRabbit)
+	autoCalculateStress.StartAutoCalculation("1ESP32") // Usa el mismo esp32_id que tienes en las tablas
+	log.Println("✅ Cálculo automático de estrés iniciado (cada minuto)")
 
 	userRouter := userInfra.SetupRouter(userRepo)
 	for _, route := range userRouter.Routes() {
@@ -62,6 +71,11 @@ func main() {
 
 	phRouter := phInfra.SetupUrinePhRouter(phRepo, phRabbit)
 	for _, route := range phRouter.Routes() {
+		r.Handle(route.Method, route.Path, route.HandlerFunc)
+	}
+
+	stressRouter := stress.SetupStressRouter(stressRepo, stressRabbit)
+	for _, route := range stressRouter.Routes() {
 		r.Handle(route.Method, route.Path, route.HandlerFunc)
 	}
 

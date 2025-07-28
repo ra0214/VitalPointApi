@@ -36,7 +36,7 @@ func (mysql *MySQL) SaveStress(esp32ID string, tiempo string, stress string) err
 	}
 
 	if rowsAffected == 1 {
-		log.Printf("[MySQL] - estres guardado correctamente: Esp32ID:%s Estres:%s", esp32ID, stress)
+		log.Printf("[MySQL] - estrés guardado correctamente: Esp32ID:%s Estrés:%s", esp32ID, stress)
 	} else {
 		log.Println("[MySQL] - No se insertó ninguna fila")
 	}
@@ -65,4 +65,56 @@ func (mysql *MySQL) GetAll() ([]domain.Stress, error) {
 		return nil, fmt.Errorf("Error iterando sobre las filas: %v", err)
 	}
 	return stresss, nil
+}
+
+// Obtener la última temperatura para un ESP32
+func (mysql *MySQL) GetLatestTemperature(esp32ID string) (float64, error) {
+	// Usar temp_objeto que parece ser la temperatura corporal
+	query := "SELECT temp_objeto FROM bodytemp WHERE esp32_id = ? ORDER BY tiempo DESC LIMIT 1"
+	fmt.Printf("Ejecutando query temperatura: %s con esp32_id: %s\n", query, esp32ID)
+
+	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	if err != nil {
+		fmt.Printf("Error en query temperatura: %v\n", err)
+		return 0, fmt.Errorf("Error al obtener la última temperatura: %v", err)
+	}
+	defer rows.Close()
+
+	var temperature float64
+	if rows.Next() {
+		if err := rows.Scan(&temperature); err != nil {
+			fmt.Printf("Error escaneando temperatura: %v\n", err)
+			return 0, fmt.Errorf("Error al escanear temperatura: %v", err)
+		}
+		fmt.Printf("Temperatura encontrada: %.2f\n", temperature)
+	} else {
+		fmt.Printf("No se encontraron datos de temperatura para esp32_id: %s\n", esp32ID)
+	}
+	return temperature, nil
+}
+
+// Obtener la última oxigenación para un ESP32
+func (mysql *MySQL) GetLatestOxygenation(esp32ID string) (float64, error) {
+	// Cambiar a bloodoxygenation y esp32ID
+	query := "SELECT spo2 FROM bloodoxygenation WHERE esp32ID = ? AND spo2 IS NOT NULL ORDER BY tiempo DESC LIMIT 1"
+	fmt.Printf("Ejecutando query oxigenación: %s con esp32ID: %s\n", query, esp32ID)
+
+	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	if err != nil {
+		fmt.Printf("Error en query oxigenación: %v\n", err)
+		return 0, fmt.Errorf("Error al obtener la última oxigenación: %v", err)
+	}
+	defer rows.Close()
+
+	var oxygenation float64
+	if rows.Next() {
+		if err := rows.Scan(&oxygenation); err != nil {
+			fmt.Printf("Error escaneando oxigenación: %v\n", err)
+			return 0, fmt.Errorf("Error al escanear oxigenación: %v", err)
+		}
+		fmt.Printf("Oxigenación encontrada: %.2f\n", oxygenation)
+	} else {
+		fmt.Printf("No se encontraron datos de oxigenación para esp32ID: %s\n", esp32ID)
+	}
+	return oxygenation, nil
 }
