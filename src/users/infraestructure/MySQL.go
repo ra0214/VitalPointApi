@@ -90,11 +90,12 @@ func (mysql *MySQL) DeleteUser(id int32) error {
 }
 
 func (mysql *MySQL) GetUserByCredentials(userName string) (*domain.User, error) {
-	query := "SELECT id, userName, email, password FROM user WHERE userName = ?"
-	row := mysql.conn.FetchRow(query, userName) // No retorna error aquí
+	// Modificar la consulta para incluir el role
+	query := "SELECT id, userName, email, password, role FROM user WHERE userName = ?"
+	row := mysql.conn.FetchRow(query, userName)
 
 	var user domain.User
-	err := row.Scan(&user.ID, &user.UserName, &user.Email, &user.Password)
+	err := row.Scan(&user.ID, &user.UserName, &user.Email, &user.Password, &user.Role)
 	if err != nil {
 		return nil, fmt.Errorf("usuario no encontrado")
 	}

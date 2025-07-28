@@ -1,8 +1,8 @@
 package infraestructure
 
 import (
-	"vitalPoint/src/users/application"
 	"net/http"
+	"vitalPoint/src/users/application"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,7 +36,8 @@ func (lc *LoginUserController) Execute(c *gin.Context) {
 	// No devolver la contraseña en la respuesta
 	user.Password = ""
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Login exitoso",
-		"user":    user,
+		"userName": user.UserName,
+		"role":     user.Role, // Asegurarse de incluir el rol
+		"email":    user.Email,
 	})
 }
