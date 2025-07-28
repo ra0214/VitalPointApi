@@ -17,20 +17,12 @@ func NewAnalyzeUrinePh() *AnalyzeUrinePh {
 
 // Modificamos Execute para recibir los datos
 func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStats, error) {
-	if len(readings) == 0 {
-		return nil, fmt.Errorf("no hay datos para analizar")
+	// Validación inicial
+	if len(readings) < 9 { // Mínimo total necesario (3 por grupo)
+		return nil, fmt.Errorf("se necesitan al menos 9 mediciones en total (3 por período)")
 	}
 
-	// Calcular media y desviación estándar general
-	allValues := make([]float64, len(readings))
-	for i, r := range readings {
-		allValues[i] = r.PH
-	}
-
-	mediaGeneral := calcularMedia(allValues)
-	desvEstandarGeneral := math.Sqrt(calcularVarianza(allValues))
-
-	// Separar por períodos del día
+	// Separar por períodos
 	morning := []float64{}
 	afternoon := []float64{}
 	evening := []float64{}
@@ -51,6 +43,22 @@ func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStat
 			evening = append(evening, r.PH)
 		}
 	}
+
+	// Validar cantidad mínima por grupo
+	minPorGrupo := 3
+	if len(morning) < minPorGrupo || len(afternoon) < minPorGrupo || len(evening) < minPorGrupo {
+		return nil, fmt.Errorf("se necesitan al menos %d mediciones por período (mañana: %d, tarde: %d, noche: %d)",
+			minPorGrupo, len(morning), len(afternoon), len(evening))
+	}
+
+	// Calcular media y desviación estándar general
+	allValues := make([]float64, len(readings))
+	for i, r := range readings {
+		allValues[i] = r.PH
+	}
+
+	mediaGeneral := calcularMedia(allValues)
+	desvEstandarGeneral := math.Sqrt(calcularVarianza(allValues))
 
 	// Calcular estadísticas por grupo
 	stats := &domain.UrinePhStats{

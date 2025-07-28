@@ -65,6 +65,7 @@ func (mysql *MySQL) GetAll() ([]domain.UrinePh, error) {
 	}
 
 	log.Printf("Total de registros leídos: %d", len(urinePhs))
+
 	return urinePhs, nil
 }
 
