@@ -5,6 +5,7 @@ type IStress interface {
 	GetAll() ([]Stress, error)
 	GetLatestTemperature(esp32ID string) (float64, error)
 	GetLatestOxygenation(esp32ID string) (float64, error)
+	GetLatestStress(esp32ID string) (*Stress, error)
 	// Nuevo método para obtener datos de correlación
 	GetCorrelationData(esp32ID string) ([]StressCorrelation, error)
 }

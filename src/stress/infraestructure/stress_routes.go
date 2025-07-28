@@ -1,6 +1,7 @@
 package infraestructure
 
 import (
+	"net/http"
 	"vitalPoint/src/stress/application"
 	"vitalPoint/src/stress/domain"
 
@@ -33,53 +34,57 @@ func SetupStressRouter(repo domain.IStress, rabbitRepo domain.IStressRabbitMQ) *
 	r.POST("/stress", createStressController.Execute)
 	r.GET("/stress", viewStressController.Execute)
 
-	// Ruta separada para correlación
+	// Ruta para datos de correlación
 	r.GET("/stress/correlation", func(c *gin.Context) {
 		esp32ID := c.DefaultQuery("esp32_id", "ESP32_001")
 
-		// Validar que el ESP32ID no esté vacío
-		if esp32ID == "" {
-			c.JSON(400, gin.H{
-				"error": "ESP32ID no puede estar vacío",
-			})
-			return
-		}
-
-		data, err := repo.GetCorrelationData(esp32ID)
+		temp, err := repo.GetLatestTemperature(esp32ID)
 		if err != nil {
-			c.JSON(500, gin.H{
-				"error":   "Error al obtener datos de correlación",
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Error al obtener temperatura",
 				"details": err.Error(),
 			})
 			return
 		}
 
-		// Validar que haya datos
-		if len(data) == 0 {
-			c.JSON(404, gin.H{
-				"error": "No se encontraron datos de correlación",
+		oxy, err := repo.GetLatestOxygenation(esp32ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Error al obtener oxigenación",
+				"details": err.Error(),
 			})
 			return
 		}
 
-		// Procesar los datos
-		result := gin.H{
-			"correlationData": data,
-			"summary": map[string]int{
-				"Alto":  0,
-				"Medio": 0,
-				"Bajo":  0,
+		stress, err := repo.GetLatestStress(esp32ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Error al obtener estrés",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		// Validar que los datos sean válidos
+		if temp <= 0 || oxy <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error":   "Datos inválidos",
+				"details": "Temperatura u oxigenación con valores no válidos",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"correlationData": []gin.H{
+				{
+					"esp32_id":    esp32ID,
+					"temperatura": temp,
+					"oxigenacion": oxy,
+					"stress":      stress.Stress,
+					"timestamp":   stress.Timestamp,
+				},
 			},
-		}
-
-		// Contar ocurrencias de cada nivel
-		for _, d := range data {
-			if nivel, ok := result["summary"].(map[string]int); ok {
-				nivel[d.Stress]++
-			}
-		}
-
-		c.JSON(200, result)
+		})
 	})
 
 	return r

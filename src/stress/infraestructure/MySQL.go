@@ -150,3 +150,33 @@ func (mysql *MySQL) GetCorrelationData(esp32ID string) ([]domain.StressCorrelati
 
 	return correlations, nil
 }
+
+func (mysql *MySQL) GetLatestStress(esp32ID string) (*domain.Stress, error) {
+	query := `
+        SELECT id, esp32ID, stress, tiempo 
+        FROM stress 
+        WHERE esp32ID = ? 
+        ORDER BY tiempo DESC 
+        LIMIT 1`
+
+	fmt.Printf("Ejecutando query estrés: %s con esp32ID: %s\n", query, esp32ID)
+
+	var stress domain.Stress
+	rows, err := mysql.conn.FetchRows(query, esp32ID)
+	if err != nil {
+		fmt.Printf("Error en query estrés: %v\n", err)
+		return nil, fmt.Errorf("error al obtener último estrés: %v", err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		if err := rows.Scan(&stress.ID, &stress.ESP32ID, &stress.Stress, &stress.Timestamp); err != nil {
+			fmt.Printf("Error escaneando estrés: %v\n", err)
+			return nil, fmt.Errorf("error al escanear estrés: %v", err)
+		}
+		fmt.Printf("Estrés encontrado: %s para ESP32ID: %s\n", stress.Stress, stress.ESP32ID)
+		return &stress, nil
+	}
+
+	return nil, fmt.Errorf("no se encontraron datos de estrés para esp32ID: %s", esp32ID)
+}
