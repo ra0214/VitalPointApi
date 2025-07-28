@@ -66,3 +66,55 @@ func (mysql *MySQL) GetAll() ([]domain.SugarOrine, error) {
 	}
 	return sugarOrines, nil
 }
+
+func (mysql *MySQL) GetStats() (*domain.SugarOrineStats, error) {
+	var stats domain.SugarOrineStats
+
+	// Consulta para estadísticas básicas
+	statsQuery := `
+        SELECT 
+            AVG(CAST(glucosa AS DECIMAL(10,2))) as media,
+            MIN(CAST(glucosa AS DECIMAL(10,2))) as minimo,
+            MAX(CAST(glucosa AS DECIMAL(10,2))) as maximo,
+            STD(CAST(glucosa AS DECIMAL(10,2))) as desviacion_estandar
+        FROM sugarorine
+    `
+
+	err := mysql.conn.DB.QueryRow(statsQuery).Scan(
+		&stats.Media,
+		&stats.Minimo,
+		&stats.Maximo,
+		&stats.DesviacionEstandar,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener estadísticas básicas: %v", err)
+	}
+
+	// Consulta para frecuencias
+	freqQuery := `
+        SELECT 
+            CAST(glucosa AS DECIMAL(10,2)) as valor,
+            COUNT(*) as frecuencia
+        FROM sugarorine 
+        GROUP BY glucosa
+        ORDER BY glucosa
+    `
+
+	rows, err := mysql.conn.DB.Query(freqQuery)
+	if err != nil {
+		return nil, fmt.Errorf("error al obtener frecuencias: %v", err)
+	}
+	defer rows.Close()
+
+	var frecuencias []domain.FrecuenciaData
+	for rows.Next() {
+		var f domain.FrecuenciaData
+		if err := rows.Scan(&f.Valor, &f.Frecuencia); err != nil {
+			return nil, fmt.Errorf("error al escanear frecuencia: %v", err)
+		}
+		frecuencias = append(frecuencias, f)
+	}
+
+	stats.FrecuenciaData = frecuencias
+	return &stats, nil
+}

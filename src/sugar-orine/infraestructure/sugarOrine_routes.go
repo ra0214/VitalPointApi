@@ -16,8 +16,13 @@ func SetupSugarOrineRouter(repo domain.ISugarOrine, rabbitRepo domain.ISugarOrin
 	viewSugarOrine := application.NewViewSugarOrine(repo)
 	viewSugarOrineController := NewViewSugarOrineController(viewSugarOrine)
 
+	// Agregar nuevo controlador para estadísticas
+	viewSugarOrineStats := application.NewViewSugarOrineStats(repo)
+	viewSugarOrineStatsController := NewViewSugarOrineStatsController(viewSugarOrineStats)
+
 	r.POST("/sugar", createSugarOrineController.Execute)
 	r.GET("/sugar", viewSugarOrineController.Execute)
+	r.GET("/sugar/stats", viewSugarOrineStatsController.Execute)
 
 	return r
 }
