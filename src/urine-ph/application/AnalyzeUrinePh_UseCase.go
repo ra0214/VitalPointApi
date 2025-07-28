@@ -17,6 +17,25 @@ func NewAnalyzeUrinePh() *AnalyzeUrinePh {
 
 // Modificamos Execute para recibir los datos
 func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStats, error) {
+	// Si no hay datos, devolver estructura vacía en lugar de error
+	if len(readings) == 0 {
+		return &domain.UrinePhStats{
+			GruposHorarios: []struct {
+				Periodo      string  `json:"periodo"`
+				Media        float64 `json:"media"`
+				DesvEstandar float64 `json:"desviacion_estandar"`
+				N            int     `json:"n"`
+			}{
+				{Periodo: "Mañana", Media: 0, DesvEstandar: 0, N: 0},
+				{Periodo: "Tarde", Media: 0, DesvEstandar: 0, N: 0},
+				{Periodo: "Noche", Media: 0, DesvEstandar: 0, N: 0},
+			},
+			EstadisticoF:             0,
+			ValorP:                   0,
+			SignificanciaEstadistica: false,
+		}, nil
+	}
+
 	// Validación inicial
 	if len(readings) < 9 { // Mínimo total necesario (3 por grupo)
 		return nil, fmt.Errorf("se necesitan al menos 9 mediciones en total (3 por período)")

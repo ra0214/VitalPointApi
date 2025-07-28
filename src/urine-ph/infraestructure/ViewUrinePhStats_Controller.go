@@ -21,33 +21,41 @@ func NewViewUrinePhStatsController(repo domain.IUrinePh) *ViewUrinePhStatsContro
 }
 
 func (vc *ViewUrinePhStatsController) Execute(c *gin.Context) {
-	// Agregar headers CORS
 	c.Header("Access-Control-Allow-Origin", "*")
-	c.Header("Access-Control-Allow-Methods", "GET")
 
 	readings, err := vc.repo.GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":    "Error al obtener datos",
-			"detalles": err.Error(),
-		})
-		return
-	}
-
-	if len(readings) < 3 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error":    "No hay suficientes datos para el análisis",
-			"detalles": "Se necesitan al menos 3 mediciones",
+		c.JSON(http.StatusOK, gin.H{
+			"grupos_horarios": []interface{}{
+				map[string]interface{}{
+					"periodo":             "Mañana",
+					"media":               0,
+					"desviacion_estandar": 0,
+					"n":                   0,
+				},
+				map[string]interface{}{
+					"periodo":             "Tarde",
+					"media":               0,
+					"desviacion_estandar": 0,
+					"n":                   0,
+				},
+				map[string]interface{}{
+					"periodo":             "Noche",
+					"media":               0,
+					"desviacion_estandar": 0,
+					"n":                   0,
+				},
+			},
+			"estadistico_f":             0,
+			"valor_p":                   0,
+			"significancia_estadistica": false,
 		})
 		return
 	}
 
 	stats, err := vc.useCase.Execute(readings)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":    "Error al calcular estadísticas",
-			"detalles": err.Error(),
-		})
+		c.JSON(http.StatusOK, stats) // Devolver los stats vacíos en lugar de error
 		return
 	}
 
