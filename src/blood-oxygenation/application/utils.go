@@ -62,7 +62,7 @@ func calcularFrecuencias(values []float64, numIntervalos int) ([]string, []float
 		limSup := limInf + amplitud
 		intervalos[i] = fmt.Sprintf("%.1f-%.1f", limInf, limSup)
 
-		// Contar frecuencias
+		// Contar frecuencias para niveles de SpO2
 		for _, v := range values {
 			if v >= limInf && (v < limSup || (i == numIntervalos-1 && v <= limSup)) {
 				frecRelativa[i]++
@@ -90,13 +90,13 @@ func calcularPorcentajesRango(values []float64) []float64 {
 	for _, v := range values {
 		switch {
 		case v >= 95:
-			rangos[0]++ // Normal
+			rangos[0]++ // Normal (95-100%)
 		case v >= 90:
-			rangos[1]++ // Leve
+			rangos[1]++ // Leve (90-94%)
 		case v >= 85:
-			rangos[2]++ // Moderado
+			rangos[2]++ // Moderado (85-89%)
 		default:
-			rangos[3]++ // Severo
+			rangos[3]++ // Severo (<85%)
 		}
 	}
 
