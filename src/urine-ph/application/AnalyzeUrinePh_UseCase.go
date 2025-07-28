@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	"math"
 	"time"
 	"vitalPoint/src/urine-ph/domain"
 )
@@ -45,14 +46,29 @@ func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStat
 	// Calcular estadísticas por grupo
 	stats := &domain.UrinePhStats{
 		GruposHorarios: []struct {
-			Periodo  string  `json:"periodo"`
-			Media    float64 `json:"media"`
-			Varianza float64 `json:"varianza"`
-			N        int     `json:"n"`
+			Periodo      string  `json:"periodo"`
+			Media        float64 `json:"media"`
+			DesvEstandar float64 `json:"desviacion_estandar"`
+			N            int     `json:"n"`
 		}{
-			{Periodo: "Mañana", Media: calcularMedia(morning), Varianza: calcularVarianza(morning), N: len(morning)},
-			{Periodo: "Tarde", Media: calcularMedia(afternoon), Varianza: calcularVarianza(afternoon), N: len(afternoon)},
-			{Periodo: "Noche", Media: calcularMedia(evening), Varianza: calcularVarianza(evening), N: len(evening)},
+			{
+				Periodo:      "Mañana",
+				Media:        calcularMedia(morning),
+				DesvEstandar: math.Sqrt(calcularVarianza(morning)),
+				N:            len(morning),
+			},
+			{
+				Periodo:      "Tarde",
+				Media:        calcularMedia(afternoon),
+				DesvEstandar: math.Sqrt(calcularVarianza(afternoon)),
+				N:            len(afternoon),
+			},
+			{
+				Periodo:      "Noche",
+				Media:        calcularMedia(evening),
+				DesvEstandar: math.Sqrt(calcularVarianza(evening)),
+				N:            len(evening),
+			},
 		},
 	}
 
@@ -92,22 +108,25 @@ func calcularANOVA(groups ...[]float64) (f float64, p float64) {
 	k := len(groups) // Número de grupos
 	N := 0           // Total de observaciones
 	grandMean := 0.0 // Media general
+	totalSum := 0.0  // Suma total
 
-	// Calcular N y la media general
+	// Calcular N y la suma total
 	for _, group := range groups {
 		N += len(group)
 		for _, v := range group {
-			grandMean += v
+			totalSum += v
 		}
 	}
-	grandMean /= float64(N)
+
+	// Calcular la media general
+	grandMean = totalSum / float64(N)
 
 	// Calcular SSB (Sum of Squares Between groups)
 	SSB := 0.0
 	for _, group := range groups {
 		if len(group) > 0 {
 			groupMean := calcularMedia(group)
-			SSB += float64(len(group)) * (groupMean - grandMean) * (groupMean - grandMean)
+			SSB += float64(len(group)) * math.Pow(groupMean-grandMean, 2)
 		}
 	}
 
@@ -116,7 +135,7 @@ func calcularANOVA(groups ...[]float64) (f float64, p float64) {
 	for _, group := range groups {
 		groupMean := calcularMedia(group)
 		for _, v := range group {
-			SSW += (v - groupMean) * (v - groupMean)
+			SSW += math.Pow(v-groupMean, 2)
 		}
 	}
 

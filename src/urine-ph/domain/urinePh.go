@@ -15,19 +15,16 @@ type UrinePh struct {
 }
 
 type UrinePhStats struct {
-	// Estadísticas básicas
+	// Datos básicos
 	Media        float64 `json:"media"`
-	Mediana      float64 `json:"mediana"`
 	DesvEstandar float64 `json:"desviacion_estandar"`
-	Minimo       float64 `json:"minimo"`
-	Maximo       float64 `json:"maximo"`
 
-	// Datos para ANOVA
+	// Grupos para ANOVA
 	GruposHorarios []struct {
-		Periodo  string  `json:"periodo"`
-		Media    float64 `json:"media"`
-		Varianza float64 `json:"varianza"`
-		N        int     `json:"n"`
+		Periodo      string  `json:"periodo"`
+		Media        float64 `json:"media"`
+		DesvEstandar float64 `json:"desviacion_estandar"`
+		N            int     `json:"n"`
 	} `json:"grupos_horarios"`
 
 	// Resultados ANOVA
