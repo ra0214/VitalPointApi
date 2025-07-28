@@ -21,7 +21,10 @@ func NewViewUrinePhStatsController(repo domain.IUrinePh) *ViewUrinePhStatsContro
 }
 
 func (vc *ViewUrinePhStatsController) Execute(c *gin.Context) {
-	// Primero obtenemos los datos del repositorio
+	// Agregar headers CORS
+	c.Header("Access-Control-Allow-Origin", "*")
+	c.Header("Access-Control-Allow-Methods", "GET")
+
 	readings, err := vc.repo.GetAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -31,7 +34,14 @@ func (vc *ViewUrinePhStatsController) Execute(c *gin.Context) {
 		return
 	}
 
-	// Luego ejecutamos el análisis con los datos
+	if len(readings) < 3 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":    "No hay suficientes datos para el análisis",
+			"detalles": "Se necesitan al menos 3 mediciones",
+		})
+		return
+	}
+
 	stats, err := vc.useCase.Execute(readings)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

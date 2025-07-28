@@ -59,12 +59,12 @@ func (mysql *MySQL) GetAll() ([]domain.UrinePh, error) {
 		if err := rows.Scan(&urinePh.ID, &urinePh.ESP32ID, &urinePh.Timestamp, &urinePh.PH); err != nil {
 			return nil, fmt.Errorf("Error al escanear la fila: %v", err)
 		}
+		log.Printf("Dato leído: ID=%d, ESP32ID=%s, Tiempo=%s, PH=%.2f",
+			urinePh.ID, urinePh.ESP32ID, urinePh.Timestamp, urinePh.PH)
 		urinePhs = append(urinePhs, urinePh)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("Error iterando sobre las filas: %v", err)
-	}
+	log.Printf("Total de registros leídos: %d", len(urinePhs))
 	return urinePhs, nil
 }
 

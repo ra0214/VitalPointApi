@@ -21,13 +21,22 @@ func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStat
 		return nil, fmt.Errorf("no hay datos para analizar")
 	}
 
+	// Calcular media y desviación estándar general
+	allValues := make([]float64, len(readings))
+	for i, r := range readings {
+		allValues[i] = r.PH
+	}
+
+	mediaGeneral := calcularMedia(allValues)
+	desvEstandarGeneral := math.Sqrt(calcularVarianza(allValues))
+
 	// Separar por períodos del día
 	morning := []float64{}
 	afternoon := []float64{}
 	evening := []float64{}
 
 	for _, r := range readings {
-		t, err := time.Parse("15:04:05", r.Timestamp[11:19])
+		t, err := time.Parse("2006-01-02 15:04:05", r.Timestamp) // Ajusta el formato según tus datos
 		if err != nil {
 			continue
 		}
@@ -45,6 +54,8 @@ func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStat
 
 	// Calcular estadísticas por grupo
 	stats := &domain.UrinePhStats{
+		Media:        mediaGeneral,
+		DesvEstandar: desvEstandarGeneral,
 		GruposHorarios: []struct {
 			Periodo      string  `json:"periodo"`
 			Media        float64 `json:"media"`
@@ -72,9 +83,11 @@ func (a *AnalyzeUrinePh) Execute(readings []domain.UrinePh) (*domain.UrinePhStat
 		},
 	}
 
-	// Calcular ANOVA
-	stats.EstadisticoF, stats.ValorP = calcularANOVA(morning, afternoon, evening)
-	stats.SignificanciaEstadistica = stats.ValorP < 0.05
+	// Solo calcular ANOVA si hay suficientes datos
+	if len(morning) > 0 && len(afternoon) > 0 && len(evening) > 0 {
+		stats.EstadisticoF, stats.ValorP = calcularANOVA(morning, afternoon, evening)
+		stats.SignificanciaEstadistica = stats.ValorP < 0.05
+	}
 
 	return stats, nil
 }
