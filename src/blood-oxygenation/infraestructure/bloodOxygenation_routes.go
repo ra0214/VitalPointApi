@@ -19,5 +19,10 @@ func SetupBloodOxygenationRouter(repo domain.IBloodOxygenation, rabbitRepo domai
 	r.POST("/bloodOxygenation/", createBloodOxygenationController.Execute)
 	r.GET("/bloodOxygenation", viewBloodOxygenationController.Execute)
 
+	// Agregar nueva ruta para estadísticas
+	analyzeOxygenation := application.NewAnalyzeOxygenation(repo)
+	analyzeOxygenationController := NewAnalyzeOxygenationController(analyzeOxygenation)
+	r.GET("/bloodOxygenation/stats", analyzeOxygenationController.Execute)
+
 	return r
 }
